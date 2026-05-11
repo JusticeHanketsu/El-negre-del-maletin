@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Negro del Maletín</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#C9A84C;--gold-l:#F0D080;--gold-d:#7A6130;--bg:#070706;--bg2:#0E0D09;--bg3:#161410;--text:#EDE0C0;--text-d:#6A5D40;--text-dd:#3A3020;}
+*{box-sizing:border-box;margin:0;padding:0;}html,body{height:100%;}
+body{background:var(--bg);color:var(--text);font-family:'Cormorant Garamond',serif;min-height:100vh;overflow-x:hidden;}
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 50% at 50% -5%,rgba(201,168,76,0.1) 0%,transparent 60%);}
+#app{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:1.5rem 1.25rem 5rem;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-weight:900;color:var(--gold);text-shadow:0 0 80px rgba(201,168,76,0.35),0 2px 0 rgba(0,0,0,0.9);line-height:1.05;text-align:center;}
+.sub{font-size:0.7rem;letter-spacing:0.45em;text-transform:uppercase;color:var(--text-d);text-align:center;margin-top:0.3rem;}
+.rule{display:flex;align-items:center;gap:0.6rem;margin:0.5rem 0;width:100%;}
+.rule::before,.rule::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold-d),transparent);}
+.rule span{color:var(--gold-d);font-size:0.65rem;letter-spacing:0.2em;white-space:nowrap;}
+.screen{display:none;flex-direction:column;align-items:center;width:100%;animation:fadeUp 0.5s ease both;}
+.screen.active{display:flex;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.char-svg{filter:drop-shadow(0 25px 50px rgba(0,0,0,0.98)) drop-shadow(0 0 40px rgba(201,168,76,0.18));transition:filter 0.5s;}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-7px);}}
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-5px) rotate(-1deg);}40%{transform:translateX(5px) rotate(1deg);}60%{transform:translateX(-3px);}80%{transform:translateX(3px);}}
+@keyframes bounce{0%,100%{transform:translateY(0);}30%{transform:translateY(-14px);}60%{transform:translateY(-6px);}80%{transform:translateY(-10px);}}
+@keyframes goldpulse{0%,100%{filter:drop-shadow(0 25px 50px rgba(0,0,0,0.98)) drop-shadow(0 0 40px rgba(201,168,76,0.18));}50%{filter:drop-shadow(0 25px 50px rgba(0,0,0,0.98)) drop-shadow(0 0 80px rgba(201,168,76,0.6));}}
+.anim-float{animation:float 4s ease-in-out infinite;}
+.anim-shake{animation:shake 0.55s ease;}
+.anim-bounce{animation:bounce 0.65s ease;}
+.anim-goldpulse{animation:goldpulse 1.5s ease;}
+
+#players-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.65rem;width:100%;margin:1.25rem 0;}
+.player-btn{padding:1.4rem 0.5rem 1.1rem;background:transparent;border:1px solid var(--gold-d);font-family:'Playfair Display',serif;font-weight:700;letter-spacing:0.08em;cursor:pointer;transition:all 0.25s;display:flex;flex-direction:column;align-items:center;gap:0.5rem;}
+.player-btn:active{transform:scale(0.96);}
+.player-color-dot{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,0.15);}
+.player-btn-name{font-size:0.8rem;letter-spacing:0.12em;text-transform:uppercase;}
+
+#speech-wrap{width:100%;display:flex;gap:10px;align-items:flex-start;margin-bottom:0.75rem;opacity:0;transform:translateY(8px);transition:opacity 0.4s,transform 0.4s;}
+#speech-wrap.visible{opacity:1;transform:translateY(0);}
+#speech-bubble{position:relative;background:var(--bg3);border:1px solid var(--gold-d);border-radius:4px 12px 12px 12px;padding:0.85rem 1.1rem;flex:1;min-height:3rem;}
+#speech-bubble::before{content:'';position:absolute;top:0;left:-8px;border:8px solid transparent;border-right-color:var(--gold-d);border-top:0;border-bottom:8px solid transparent;}
+#speech-name{font-size:0.6rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold-d);margin-bottom:0.35rem;}
+#speech-text{font-size:0.95rem;line-height:1.65;color:var(--text-d);font-style:italic;min-height:1.5rem;}
+#speech-cursor{display:inline-block;width:2px;height:1em;background:var(--gold-d);vertical-align:middle;margin-left:2px;animation:cursorBlink 0.7s step-end infinite;}
+@keyframes cursorBlink{50%{opacity:0;}}
+
+#q-box{width:100%;border:1px solid var(--gold-d);padding:1.4rem 1.65rem;position:relative;margin-bottom:1rem;background:linear-gradient(135deg,rgba(201,168,76,0.035),transparent);transition:opacity 0.5s;}
+#q-box::before,#q-box::after{content:'◆';position:absolute;color:var(--gold);font-size:0.5rem;background:var(--bg);padding:0 8px;}
+#q-box::before{top:-0.4rem;left:50%;transform:translateX(-50%);}
+#q-box::after{bottom:-0.4rem;left:50%;transform:translateX(-50%);}
+#q-num{font-size:0.62rem;letter-spacing:0.38em;text-transform:uppercase;color:var(--text-d);margin-bottom:0.55rem;}
+#q-text{font-family:'Playfair Display',serif;font-size:clamp(0.95rem,2.3vw,1.2rem);font-weight:700;line-height:1.55;color:var(--text);min-height:3.5rem;}
+#q-text.loading{color:var(--text-d);font-style:italic;font-family:'Cormorant Garamond',serif;font-weight:400;animation:blink 1s step-end infinite;}
+@keyframes blink{50%{opacity:0.25;}}
+#offer-pill{display:inline-flex;align-items:center;gap:0.4rem;margin-top:0.8rem;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);padding:0.3rem 0.9rem;font-size:1.1rem;font-weight:700;color:var(--gold-l);}
+
+#streak-bar{width:100%;padding:0.45rem 1rem;background:rgba(201,168,76,0.04);border:1px solid rgba(201,168,76,0.1);font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-d);text-align:center;margin-bottom:0.65rem;display:none;}
+#streak-bar.show{display:block;animation:fadeUp 0.4s ease;}
+
+#choices{display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;width:100%;margin-bottom:0.65rem;}
+.btn{padding:0.85rem 1rem;background:transparent;font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;border:1px solid;}
+.btn:active{transform:scale(0.96);}
+.btn:disabled{opacity:0.3;cursor:not-allowed;transform:none;}
+#btn-yes{border-color:var(--gold-d);color:var(--gold);}
+#btn-yes:hover:not(:disabled){border-color:var(--gold);box-shadow:0 0 30px rgba(201,168,76,0.18);}
+#btn-no{border-color:#2A1818;color:#7A5050;}
+#btn-no:hover:not(:disabled){border-color:#6B3333;color:#B08080;}
+
+#co-box{display:none;width:100%;border:1px dashed var(--gold-d);padding:1rem 1.5rem;margin-bottom:0.65rem;background:rgba(201,168,76,0.02);}
+#co-box.show{display:block;animation:fadeUp 0.45s ease;}
+#co-label{font-size:0.6rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold-d);margin-bottom:0.45rem;}
+#co-text{font-family:'Playfair Display',serif;font-size:1rem;color:var(--gold-l);line-height:1.5;}
+#co-choices{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.65rem;}
+.btn-co{padding:0.5rem 0.75rem;background:transparent;font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;border:1px solid;}
+#btn-co-yes{border-color:var(--gold-d);color:var(--gold);}
+#btn-co-yes:hover{border-color:var(--gold);background:rgba(201,168,76,0.06);}
+#btn-co-no{border-color:#2A1818;color:#7A5050;}
+#btn-co-no:hover{border-color:#6B3333;}
+
+/* AUDIENCIA — estética WhatsApp sin reply */
+#audience-box{display:none;width:100%;margin-bottom:0.65rem;}
+#audience-box.show{display:block;animation:fadeUp 0.5s ease;}
+#audience-header{display:flex;align-items:center;gap:0.65rem;margin-bottom:0.6rem;padding:0.55rem 0.9rem;background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);}
+.aud-hdr-icon{font-size:1.1rem;}
+.aud-hdr-title{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:0.05em;}
+.aud-hdr-sub{font-size:0.63rem;color:var(--text-d);letter-spacing:0.08em;margin-top:0.08rem;}
+#audience-comments{display:flex;flex-direction:column;gap:0.5rem;padding:0 0.1rem;}
+
+.wa-row{display:flex;align-items:flex-start;gap:0.55rem;animation:fadeUp 0.35s ease both;}
+.wa-row.right{flex-direction:row-reverse;}
+.wa-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0;font-family:'Playfair Display',serif;letter-spacing:0.05em;}
+.wa-body{max-width:80%;}
+.wa-sender{font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.18rem;}
+.wa-row.right .wa-sender{text-align:right;}
+.wa-bubble-msg{padding:0.55rem 0.9rem 0.45rem;border-radius:12px;font-size:0.9rem;line-height:1.55;position:relative;}
+.wa-row:not(.right) .wa-bubble-msg{border-top-left-radius:3px;}
+.wa-row.right .wa-bubble-msg{border-top-right-radius:3px;}
+.wa-ts{font-size:0.58rem;opacity:0.4;margin-top:0.12rem;padding:0 0.15rem;}
+.wa-row.right .wa-ts{text-align:right;}
+
+#btn-next{display:none;width:100%;padding:0.8rem;background:transparent;border:1px solid var(--gold-d);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:700;letter-spacing:0.28em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;}
+#btn-next:hover{border-color:var(--gold);background:rgba(201,168,76,0.04);}
+#btn-next.show{display:block;}
+
+#prog-wrap{width:100%;display:flex;align-items:center;gap:0.75rem;margin-bottom:1.1rem;}
+#prog-bg{flex:1;height:1px;background:rgba(201,168,76,0.08);}
+#prog-fill{height:100%;background:linear-gradient(90deg,var(--gold-d),var(--gold));transition:width 0.6s ease;width:0%;}
+#prog-txt{font-size:0.65rem;color:var(--text-d);letter-spacing:0.15em;min-width:2.5rem;text-align:right;}
+
+.intro-copy{text-align:center;font-size:1.05rem;line-height:1.95;color:var(--text-d);max-width:440px;}
+.intro-copy strong{color:var(--gold);}
+
+#load-ov{display:none;position:fixed;inset:0;background:rgba(7,7,6,0.94);z-index:300;align-items:center;justify-content:center;flex-direction:column;gap:1rem;}
+#load-ov.show{display:flex;}
+.spin{width:36px;height:36px;border:1.5px solid rgba(201,168,76,0.15);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#load-msg{font-family:'Playfair Display',serif;font-size:1rem;color:var(--gold-d);text-align:center;max-width:300px;line-height:1.6;font-style:italic;animation:blink 2s ease infinite;}
+
+#s-result{gap:1rem;}
+#res-player-name{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--gold-d);letter-spacing:0.15em;text-transform:uppercase;}
+#res-money{font-family:'Playfair Display',serif;font-size:clamp(2.5rem,8vw,4rem);font-weight:900;color:var(--gold);text-shadow:0 0 50px rgba(201,168,76,0.45);animation:countUp 0.9s cubic-bezier(0.175,0.885,0.32,1.275);}
+@keyframes countUp{from{opacity:0;transform:scale(0.5) rotate(-8deg);}to{opacity:1;transform:scale(1) rotate(0);}}
+#res-lbl{font-size:0.65rem;letter-spacing:0.4em;text-transform:uppercase;color:var(--text-d);}
+#res-moral-cat{padding:0.6rem 1.5rem;border:1px solid var(--gold);font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--gold-l);text-align:center;background:rgba(201,168,76,0.06);animation:fadeUp 0.6s ease 0.3s both;}
+#res-stats{display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;width:100%;max-width:360px;}
+.stat{background:rgba(201,168,76,0.04);border:1px solid rgba(201,168,76,0.1);padding:0.7rem 1rem;}
+.stat-l{font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-d);margin-bottom:0.2rem;}
+.stat-v{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;color:var(--gold);}
+#res-fortune{max-width:480px;width:100%;border:1px solid var(--gold-d);padding:1.4rem 1.75rem;font-family:'Playfair Display',serif;font-size:1rem;font-style:italic;line-height:1.8;color:var(--text);background:rgba(201,168,76,0.025);position:relative;}
+#res-fortune::before{content:'"';position:absolute;top:-1.6rem;left:0.6rem;font-size:4.5rem;color:var(--gold-d);line-height:1;}
+#res-aud-wrap{width:100%;max-width:480px;display:none;}
+#res-aud-hdr{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;padding:0.5rem 0.75rem;background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);}
+#res-aud-hdr span{font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:700;color:var(--gold);}
+#res-aud-comments{display:flex;flex-direction:column;gap:0.5rem;}
+#btn-restart{padding:0.8rem 2.5rem;background:transparent;border:1px solid var(--gold-d);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;}
+#btn-restart:hover{border-color:var(--gold);background:rgba(201,168,76,0.05);}
+
+#sound-btn{position:fixed;top:0.85rem;right:0.85rem;z-index:100;background:rgba(7,7,6,0.88);border:1px solid var(--gold-d);color:var(--text-d);padding:0.35rem 0.6rem;font-size:0.65rem;letter-spacing:0.15em;cursor:pointer;transition:all 0.18s;font-family:'Cormorant Garamond',serif;backdrop-filter:blur(6px);}
+#sound-btn:hover{border-color:var(--gold);color:var(--gold);}
+.coin{position:fixed;pointer-events:none;z-index:200;font-size:1.4rem;animation:coinfall 1.3s ease forwards;}
+@keyframes coinfall{0%{opacity:0;transform:translateY(-25px) scale(0.4);}15%{opacity:1;transform:translateY(0) scale(1);}85%{opacity:1;}100%{opacity:0;transform:translateY(70px) scale(0.6);}}
+</style>
+</head>
+<body>
+<button id="sound-btn">🔊 SFX</button>
+<canvas id="bg-canvas"></canvas>
+<div id="load-ov"><div class="spin"></div><p id="load-msg">Calibrando tu precio...</p></div>
+
+<div id="app">
+  <div id="hdr" style="text-align:center;margin-bottom:1.5rem;width:100%;">
+    <div class="rule"><span>◆ ◆ ◆</span></div>
+    <h1>El Negro<br>del Maletín</h1>
+    <p class="sub">¿Cuánto vale lo que crees que eres?</p>
+    <div class="rule"><span>◆ ◆ ◆</span></div>
+  </div>
+
+  <!-- INTRO -->
+  <div id="s-intro" class="screen active">
+    <div style="margin-bottom:1.5rem;">
+      <svg id="char-intro" viewBox="0 0 280 400" width="200" height="290" xmlns="http://www.w3.org/2000/svg" class="char-svg anim-float">
+        <defs>
+          <radialGradient id="skinG" cx="45%" cy="35%" r="60%"><stop offset="0%" stop-color="#3A2008"/><stop offset="60%" stop-color="#2C1806"/><stop offset="100%" stop-color="#1E1004"/></radialGradient>
+          <radialGradient id="skinFG" cx="40%" cy="30%" r="65%"><stop offset="0%" stop-color="#3E2209"/><stop offset="55%" stop-color="#2E1A07"/><stop offset="100%" stop-color="#1E1004"/></radialGradient>
+          <linearGradient id="suitG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1E1E1C"/><stop offset="100%" stop-color="#111110"/></linearGradient>
+          <linearGradient id="goldG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F0D080"/><stop offset="50%" stop-color="#C9A84C"/><stop offset="100%" stop-color="#8A6020"/></linearGradient>
+          <filter id="sb"><feGaussianBlur stdDeviation="1.2"/></filter>
+        </defs>
+        <ellipse cx="140" cy="396" rx="80" ry="10" fill="rgba(0,0,0,0.7)"/>
+        <rect x="92" y="268" width="38" height="110" rx="5" fill="url(#suitG)"/>
+        <rect x="150" y="268" width="38" height="110" rx="5" fill="url(#suitG)"/>
+        <line x1="111" y1="274" x2="111" y2="370" stroke="#282826" stroke-width="1.5"/>
+        <line x1="169" y1="274" x2="169" y2="370" stroke="#282826" stroke-width="1.5"/>
+        <rect x="78" y="366" width="56" height="18" rx="4" fill="#0C0C0A"/>
+        <rect x="144" y="366" width="56" height="18" rx="4" fill="#0C0C0A"/>
+        <rect x="76" y="165" width="128" height="115" rx="12" fill="url(#suitG)"/>
+        <path d="M140,168 L96,188 L100,268 L140,252" fill="#222220"/>
+        <path d="M140,168 L184,188 L180,268 L140,252" fill="#222220"/>
+        <path d="M134,182 L146,182 L143,262 L140,267 L137,262 Z" fill="#8B1A1A"/>
+        <rect x="133" y="176" width="14" height="10" rx="3" fill="#A52020"/>
+        <rect x="134" y="218" width="12" height="3.5" rx="1.5" fill="url(#goldG)"/>
+        <path d="M170,176 L185,172 L187,188 L176,185 Z" fill="#EEE6D0"/>
+        <circle cx="140" cy="226" r="3.5" fill="#282826"/>
+        <circle cx="140" cy="240" r="3.5" fill="#282826"/>
+        <rect x="46" y="168" width="34" height="82" rx="9" fill="url(#suitG)"/>
+        <ellipse cx="63" cy="256" rx="16" ry="14" fill="url(#skinG)"/>
+        <rect x="44" y="238" width="14" height="7" rx="2.5" fill="url(#goldG)"/>
+        <g transform="translate(18,272)">
+          <rect x="0" y="0" width="80" height="58" rx="7" fill="#1C1206"/>
+          <rect x="0" y="0" width="80" height="58" rx="7" fill="none" stroke="url(#goldG)" stroke-width="1.8"/>
+          <path d="M24,0 C24,-18 56,-18 56,0" fill="none" stroke="url(#goldG)" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="24" cy="0" r="5" fill="url(#goldG)"/>
+          <circle cx="56" cy="0" r="5" fill="url(#goldG)"/>
+          <rect x="31" y="20" width="18" height="18" rx="4" fill="url(#goldG)"/>
+          <circle cx="40" cy="29" r="4.5" fill="#A08030"/>
+          <rect x="7" y="-13" width="22" height="14" rx="2.5" fill="#2D5A27" transform="rotate(-13,18,-6)"/>
+          <rect x="43" y="-14" width="22" height="14" rx="2.5" fill="#2D5A27" transform="rotate(10,54,-7)"/>
+          <text x="8" y="-2" fill="#90C880" font-size="6.5" font-family="serif" transform="rotate(-13,18,-6)">100€</text>
+          <text x="44" y="-3" fill="#90C880" font-size="6.5" font-family="serif" transform="rotate(10,54,-7)">500€</text>
+        </g>
+        <rect x="200" y="168" width="34" height="82" rx="9" fill="url(#suitG)"/>
+        <ellipse cx="217" cy="253" rx="16" ry="13" fill="url(#skinG)"/>
+        <rect x="222" y="238" width="14" height="7" rx="2.5" fill="url(#goldG)"/>
+        <rect x="122" y="152" width="36" height="20" rx="5" fill="#EEE8D4"/>
+        <path d="M128,152 L122,168 L140,160 Z" fill="#1E1E1C"/>
+        <path d="M152,152 L158,168 L140,160 Z" fill="#1E1E1C"/>
+        <rect x="126" y="138" width="28" height="18" rx="5" fill="url(#skinG)"/>
+        <ellipse cx="140" cy="136" rx="30" ry="20" fill="url(#skinG)"/>
+        <ellipse cx="140" cy="96" rx="62" ry="70" fill="url(#skinFG)"/>
+        <ellipse cx="85" cy="106" rx="22" ry="16" fill="#281607" filter="url(#sb)"/>
+        <ellipse cx="195" cy="106" rx="22" ry="16" fill="#281607" filter="url(#sb)"/>
+        <ellipse cx="78" cy="104" rx="11" ry="16" fill="#251606"/>
+        <ellipse cx="80" cy="104" rx="7" ry="11" fill="#1C1005"/>
+        <circle cx="78" cy="118" r="6" fill="url(#goldG)"/>
+        <circle cx="78" cy="118" r="3" fill="#9A7828"/>
+        <ellipse cx="202" cy="104" rx="11" ry="16" fill="#251606"/>
+        <ellipse cx="140" cy="38" rx="80" ry="14" fill="#0C0C0A"/>
+        <rect x="76" y="2" width="128" height="38" rx="13" fill="#131311"/>
+        <rect x="76" y="34" width="128" height="9" fill="#C9A84C" opacity="0.5"/>
+        <circle cx="186" cy="39" r="5" fill="url(#goldG)"/>
+        <path d="M100,72 Q114,64 126,70" fill="none" stroke="#0C0600" stroke-width="5" stroke-linecap="round"/>
+        <path d="M154,70 Q166,64 180,72" fill="none" stroke="#0C0600" stroke-width="5" stroke-linecap="round"/>
+        <ellipse cx="113" cy="92" rx="16" ry="17" fill="#0C0600"/>
+        <ellipse cx="113" cy="92" rx="10" ry="11" fill="#080400"/>
+        <circle cx="108" cy="87" r="4" fill="rgba(255,255,255,0.95)"/>
+        <ellipse cx="167" cy="92" rx="16" ry="17" fill="#0C0600"/>
+        <ellipse cx="167" cy="92" rx="10" ry="11" fill="#080400"/>
+        <circle cx="162" cy="87" r="4" fill="rgba(255,255,255,0.95)"/>
+        <path d="M97,84 Q113,76 129,84" fill="#2A1607" opacity="0.5"/>
+        <path d="M151,84 Q167,76 183,84" fill="#2A1607" opacity="0.5"/>
+        <ellipse cx="131" cy="116" rx="9" ry="8" fill="#221205"/>
+        <ellipse cx="149" cy="116" rx="9" ry="8" fill="#221205"/>
+        <circle cx="128" cy="117" r="6" fill="#180A03"/>
+        <circle cx="152" cy="117" r="6" fill="#180A03"/>
+        <path d="M116,136 Q140,148 164,136" fill="none" stroke="#0C0600" stroke-width="3.5" stroke-linecap="round"/>
+        <ellipse cx="140" cy="148" rx="30" ry="12" fill="#1A0C04" opacity="0.35"/>
+      </svg>
+    </div>
+    <p class="intro-copy">Para el Bentley negro.<br>Abre la puerta despacio.<br>Te mira de arriba abajo.<br><br><strong>«Tengo algo que podría interesarte.»</strong></p>
+    <div class="rule" style="margin-top:1.5rem;"><span>¿Quién eres?</span></div>
+    <div id="players-grid"></div>
+  </div>
+
+  <!-- JUEGO -->
+  <div id="s-game" class="screen">
+    <div id="prog-wrap"><div id="prog-bg"><div id="prog-fill"></div></div><span id="prog-txt">1/10</span></div>
+    <div style="display:flex;justify-content:center;margin-bottom:0.5rem;">
+      <svg id="char-game" viewBox="0 0 280 185" width="170" height="115" xmlns="http://www.w3.org/2000/svg" class="char-svg anim-float">
+        <defs>
+          <radialGradient id="skg" cx="40%" cy="30%" r="65%"><stop offset="0%" stop-color="#3E2209"/><stop offset="60%" stop-color="#2C1806"/><stop offset="100%" stop-color="#1A1004"/></radialGradient>
+          <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1E1E1C"/><stop offset="100%" stop-color="#111110"/></linearGradient>
+          <linearGradient id="gg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F0D080"/><stop offset="50%" stop-color="#C9A84C"/><stop offset="100%" stop-color="#8A6020"/></linearGradient>
+          <filter id="sb2"><feGaussianBlur stdDeviation="0.8"/></filter>
+        </defs>
+        <rect x="76" y="98" width="128" height="82" rx="10" fill="url(#sg)"/>
+        <path d="M140,101 L100,115 L103,178 L140,165" fill="#222220"/>
+        <path d="M140,101 L180,115 L177,178 L140,165" fill="#222220"/>
+        <path d="M135,115 L145,115 L142,178 L140,182 L138,178 Z" fill="#8B1A1A"/>
+        <rect x="134" y="110" width="12" height="8" rx="3" fill="#A52020"/>
+        <rect x="135" y="143" width="10" height="3" rx="1.5" fill="url(#gg)"/>
+        <path d="M168,108 L180,105 L182,117 L172,115 Z" fill="#EEE6D0"/>
+        <circle cx="140" cy="156" r="3" fill="#282826"/>
+        <circle cx="140" cy="166" r="3" fill="#282826"/>
+        <rect x="42" y="99" width="38" height="68" rx="8" fill="url(#sg)"/>
+        <ellipse cx="61" cy="171" rx="17" ry="14" fill="url(#skg)"/>
+        <rect x="40" y="158" width="14" height="7" rx="3" fill="url(#gg)"/>
+        <g transform="translate(10,168)">
+          <rect x="0" y="0" width="72" height="50" rx="6" fill="#1C1206"/>
+          <rect x="0" y="0" width="72" height="50" rx="6" fill="none" stroke="url(#gg)" stroke-width="1.5"/>
+          <path d="M20,0 C20,-14 52,-14 52,0" fill="none" stroke="url(#gg)" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="20" cy="0" r="4" fill="url(#gg)"/><circle cx="52" cy="0" r="4" fill="url(#gg)"/>
+          <rect x="28" y="16" width="16" height="16" rx="3.5" fill="url(#gg)"/>
+          <circle cx="36" cy="24" r="4" fill="#9A7828"/>
+          <g id="gm-bills" style="opacity:0;transition:opacity 0.4s;">
+            <rect x="5" y="-10" width="18" height="11" rx="2" fill="#2D5A27" transform="rotate(-12,14,-4)"/>
+            <rect x="42" y="-10" width="18" height="11" rx="2" fill="#2D5A27" transform="rotate(9,51,-4)"/>
+            <text x="6" y="-2" fill="#90C880" font-size="5.5" font-family="serif" transform="rotate(-12,14,-4)">€€€</text>
+          </g>
+        </g>
+        <rect x="200" y="99" width="38" height="68" rx="8" fill="url(#sg)"/>
+        <ellipse cx="219" cy="170" rx="16" ry="13" fill="url(#skg)"/>
+        <rect x="226" y="158" width="14" height="7" rx="3" fill="url(#gg)"/>
+        <rect x="124" y="87" width="32" height="17" rx="4" fill="#EEE8D4"/>
+        <path d="M130,87 L124,100 L140,94 Z" fill="#1E1E1C"/>
+        <path d="M150,87 L156,100 L140,94 Z" fill="#1E1E1C"/>
+        <rect x="128" y="77" width="24" height="15" rx="4" fill="url(#skg)"/>
+        <ellipse cx="140" cy="51" rx="58" ry="62" fill="url(#skg)"/>
+        <ellipse cx="88" cy="60" rx="20" ry="14" fill="#261506" filter="url(#sb2)"/>
+        <ellipse cx="192" cy="60" rx="20" ry="14" fill="#261506" filter="url(#sb2)"/>
+        <ellipse cx="82" cy="59" rx="10" ry="14" fill="#241505"/>
+        <ellipse cx="84" cy="59" rx="6" ry="10" fill="#1A1004"/>
+        <circle cx="81" cy="71" r="5" fill="url(#gg)"/>
+        <circle cx="81" cy="71" r="2.5" fill="#9A7828"/>
+        <ellipse cx="198" cy="59" rx="10" ry="14" fill="#241505"/>
+        <ellipse cx="140" cy="3" rx="76" ry="13" fill="#0C0C0A"/>
+        <rect x="76" y="-28" width="128" height="33" rx="11" fill="#131311"/>
+        <rect x="76" y="3" width="128" height="8" fill="#C9A84C" opacity="0.5"/>
+        <circle cx="184" cy="7" r="5" fill="url(#gg)"/>
+        <g id="gf-neutral">
+          <path d="M104,37 Q116,29 128,35" fill="none" stroke="#0C0600" stroke-width="4" stroke-linecap="round"/>
+          <path d="M152,35 Q164,29 176,37" fill="none" stroke="#0C0600" stroke-width="4" stroke-linecap="round"/>
+          <ellipse cx="116" cy="53" rx="13" ry="14" fill="#0C0600"/><ellipse cx="116" cy="53" rx="9" ry="10" fill="#080400"/>
+          <circle cx="111" cy="48" r="3.5" fill="rgba(255,255,255,0.95)"/>
+          <path d="M103,46 Q116,39 129,46" fill="#2A1607" opacity="0.5"/>
+          <ellipse cx="164" cy="53" rx="13" ry="14" fill="#0C0600"/><ellipse cx="164" cy="53" rx="9" ry="10" fill="#080400"/>
+          <circle cx="159" cy="48" r="3.5" fill="rgba(255,255,255,0.95)"/>
+          <path d="M151,46 Q164,39 177,46" fill="#2A1607" opacity="0.5"/>
+          <ellipse cx="130" cy="67" rx="7" ry="6" fill="#1E1005"/><ellipse cx="150" cy="67" rx="7" ry="6" fill="#1E1005"/>
+          <circle cx="128" cy="68" r="5" fill="#160903"/><circle cx="152" cy="68" r="5" fill="#160903"/>
+          <path d="M120,79 Q140,89 160,79" fill="none" stroke="#0C0600" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
+        <g id="gf-judge" style="display:none;">
+          <path d="M102,29 Q116,20 130,31" fill="none" stroke="#0C0600" stroke-width="5" stroke-linecap="round"/>
+          <path d="M150,31 Q164,20 178,29" fill="none" stroke="#0C0600" stroke-width="5" stroke-linecap="round"/>
+          <line x1="137" y1="27" x2="140" y2="37" stroke="#1A0A00" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="143" y1="27" x2="140" y2="37" stroke="#1A0A00" stroke-width="2.5" stroke-linecap="round"/>
+          <ellipse cx="116" cy="53" rx="13" ry="14" fill="#0C0600"/><ellipse cx="116" cy="53" rx="9" ry="9" fill="#080400"/>
+          <circle cx="111" cy="49" r="3" fill="rgba(255,255,255,0.9)"/>
+          <path d="M103,46 Q116,37 129,46" fill="#2A1607" opacity="0.85"/>
+          <ellipse cx="164" cy="53" rx="13" ry="14" fill="#0C0600"/><ellipse cx="164" cy="53" rx="9" ry="9" fill="#080400"/>
+          <circle cx="159" cy="49" r="3" fill="rgba(255,255,255,0.9)"/>
+          <path d="M151,46 Q164,37 177,46" fill="#2A1607" opacity="0.85"/>
+          <ellipse cx="130" cy="67" rx="7" ry="6" fill="#1E1005"/><ellipse cx="150" cy="67" rx="7" ry="6" fill="#1E1005"/>
+          <circle cx="128" cy="68" r="5" fill="#160903"/><circle cx="152" cy="68" r="5" fill="#160903"/>
+          <path d="M122,81 L158,81" fill="none" stroke="#0C0600" stroke-width="3.5" stroke-linecap="round"/>
+        </g>
+        <g id="gf-despise" style="display:none;">
+          <path d="M102,35 Q116,41 130,36" fill="none" stroke="#0C0600" stroke-width="4.5" stroke-linecap="round"/>
+          <path d="M150,36 Q164,41 178,35" fill="none" stroke="#0C0600" stroke-width="4.5" stroke-linecap="round"/>
+          <ellipse cx="116" cy="55" rx="13" ry="11" fill="#0C0600"/><ellipse cx="116" cy="56" rx="8" ry="7" fill="#080400"/>
+          <circle cx="112" cy="53" r="2.5" fill="rgba(255,255,255,0.85)"/>
+          <path d="M103,48 Q116,40 129,48" fill="#2A1607" opacity="0.92"/>
+          <ellipse cx="164" cy="55" rx="13" ry="11" fill="#0C0600"/><ellipse cx="164" cy="56" rx="8" ry="7" fill="#080400"/>
+          <circle cx="160" cy="53" r="2.5" fill="rgba(255,255,255,0.85)"/>
+          <path d="M151,48 Q164,40 177,48" fill="#2A1607" opacity="0.92"/>
+          <ellipse cx="130" cy="67" rx="7" ry="6" fill="#1E1005"/><ellipse cx="150" cy="67" rx="7" ry="6" fill="#1E1005"/>
+          <circle cx="128" cy="68" r="5" fill="#160903"/><circle cx="152" cy="68" r="5" fill="#160903"/>
+          <path d="M120,83 Q132,78 143,82 Q150,86 158,80" fill="none" stroke="#0C0600" stroke-width="3" stroke-linecap="round"/>
+          <ellipse cx="184" cy="33" rx="4.5" ry="7" fill="#3A6AB0" opacity="0.65"/>
+          <polygon points="179,39 184,23 189,39" fill="#3A6AB0" opacity="0.65"/>
+        </g>
+        <g id="gf-laugh" style="display:none;">
+          <path d="M102,25 Q116,16 130,27" fill="none" stroke="#0C0600" stroke-width="4" stroke-linecap="round"/>
+          <path d="M150,27 Q164,16 178,25" fill="none" stroke="#0C0600" stroke-width="4" stroke-linecap="round"/>
+          <path d="M103,53 Q116,43 129,53" fill="#0C0600"/><path d="M105,53 Q116,46 127,53" fill="#080400"/>
+          <path d="M151,53 Q164,43 177,53" fill="#0C0600"/><path d="M153,53 Q164,46 175,53" fill="#080400"/>
+          <ellipse cx="130" cy="67" rx="7" ry="6" fill="#1E1005"/><ellipse cx="150" cy="67" rx="7" ry="6" fill="#1E1005"/>
+          <circle cx="128" cy="68" r="5" fill="#160903"/><circle cx="152" cy="68" r="5" fill="#160903"/>
+          <path d="M116,80 Q140,99 164,80" fill="#0C0600"/>
+          <path d="M119,82 Q140,99 161,82" fill="#2A1010"/>
+          <rect x="127" y="82" width="7" height="9" rx="2" fill="#F0E8D4"/>
+          <rect x="136" y="82" width="7" height="9" rx="2" fill="#F0E8D4"/>
+          <rect x="145" y="82" width="7" height="9" rx="2" fill="#F0E8D4"/>
+        </g>
+        <g id="gf-shock" style="display:none;">
+          <path d="M100,25 Q116,15 130,25" fill="none" stroke="#0C0600" stroke-width="4.5" stroke-linecap="round"/>
+          <path d="M150,25 Q164,15 180,25" fill="none" stroke="#0C0600" stroke-width="4.5" stroke-linecap="round"/>
+          <ellipse cx="116" cy="53" rx="15" ry="17" fill="#0C0600"/><ellipse cx="116" cy="53" rx="11" ry="12" fill="#080400"/>
+          <circle cx="110" cy="47" r="5" fill="rgba(255,255,255,1)"/>
+          <ellipse cx="164" cy="53" rx="15" ry="17" fill="#0C0600"/><ellipse cx="164" cy="53" rx="11" ry="12" fill="#080400"/>
+          <circle cx="158" cy="47" r="5" fill="rgba(255,255,255,1)"/>
+          <ellipse cx="130" cy="67" rx="7" ry="6" fill="#1E1005"/><ellipse cx="150" cy="67" rx="7" ry="6" fill="#1E1005"/>
+          <circle cx="128" cy="68" r="5" fill="#160903"/><circle cx="152" cy="68" r="5" fill="#160903"/>
+          <ellipse cx="140" cy="85" rx="13" ry="10" fill="#0C0600"/>
+          <ellipse cx="140" cy="86" rx="9" ry="7" fill="#220808"/>
+        </g>
+        <g id="gf-smirk" style="display:none;">
+          <path d="M102,29 Q116,20 130,31" fill="none" stroke="#0C0600" stroke-width="4.5" stroke-linecap="round"/>
+          <path d="M150,35 Q164,31 178,37" fill="none" stroke="#0C0600" stroke-width="3.5" stroke-linecap="round"/>
+          <ellipse cx="116" cy="53" rx="13" ry="14" fill="#0C0600"/><ellipse cx="116" cy="53" rx="9" ry="9" fill="#080400"/>
+          <circle cx="111" cy="48" r="3" fill="rgba(255,255,255,0.9)"/>
+          <path d="M103,46 Q116,38 129,46" fill="#2A1607" opacity="0.9"/>
+          <ellipse cx="164" cy="53" rx="13" ry="14" fill="#0C0600"/><ellipse cx="164" cy="53" rx="9" ry="10" fill="#080400"/>
+          <circle cx="159" cy="48" r="3.5" fill="rgba(255,255,255,0.95)"/>
+          <ellipse cx="130" cy="67" rx="7" ry="6" fill="#1E1005"/><ellipse cx="150" cy="67" rx="7" ry="6" fill="#1E1005"/>
+          <circle cx="128" cy="68" r="5" fill="#160903"/><circle cx="152" cy="68" r="5" fill="#160903"/>
+          <path d="M118,82 Q130,78 142,82 Q150,86 160,80" fill="none" stroke="#0C0600" stroke-width="3" stroke-linecap="round"/>
+          <path d="M158,81 Q161,78 160,73" fill="none" stroke="#0C0600" stroke-width="2.2" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
+
+    <div id="streak-bar"></div>
+    <div id="q-box">
+      <div id="q-num">Pregunta 1 de 10</div>
+      <div id="q-text" class="loading">El negro abre el maletín...</div>
+      <div id="offer-pill">💰 <span id="offer-amt">—</span></div>
+    </div>
+    <div id="choices">
+      <button class="btn" id="btn-yes">✓ Lo hago</button>
+      <button class="btn" id="btn-no">✗ Ni loco</button>
+    </div>
+    <div id="co-box">
+      <div id="co-label">◆ Contraoferta del negro</div>
+      <div id="co-text"></div>
+      <div id="co-choices">
+        <button class="btn-co" id="btn-co-yes">Acepto</button>
+        <button class="btn-co" id="btn-co-no">Tampoco</button>
+      </div>
+    </div>
+    <div id="speech-wrap">
+      <div id="speech-bubble">
+        <div id="speech-name">◆ El negro</div>
+        <div id="speech-text"><span id="speech-cursor"></span></div>
+      </div>
+    </div>
+    <div id="audience-box">
+      <div id="audience-header">
+        <span class="aud-hdr-icon">💬</span>
+        <div><div class="aud-hdr-title">El público opina</div><div class="aud-hdr-sub">Grupo de amigos</div></div>
+      </div>
+      <div id="audience-comments"></div>
+    </div>
+    <button id="btn-next">Siguiente pregunta →</button>
+  </div>
+
+  <!-- RESULTADO -->
+  <div id="s-result" class="screen">
+    <div class="rule"><span>Veredicto final</span></div>
+    <div id="res-player-name"></div>
+    <div id="res-lbl">Dinero aceptado</div>
+    <div id="res-money">0€</div>
+    <div id="res-moral-cat"></div>
+    <div id="res-stats">
+      <div class="stat"><div class="stat-l">Pecados</div><div class="stat-v" id="stat-yes">0</div></div>
+      <div class="stat"><div class="stat-l">Dignidad</div><div class="stat-v" id="stat-no">0</div></div>
+    </div>
+    <div id="res-fortune"></div>
+    <div id="res-aud-wrap">
+      <div id="res-aud-hdr"><span>💬 El grupo reacciona</span></div>
+      <div id="res-aud-comments"></div>
+    </div>
+    <button id="btn-restart">Jugar de nuevo</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// PERFILES
+// ============================================================
+const PLAYERS = {
+  alan: {
+    name: 'Alan', color: '#8B6914', bg: '#2A1F08', textColor: '#F0D080',
+    profile: `Alan. Trabaja en empresa familiar con su padre. Inseguro de parecer chulo o creído sin querer serlo. Pareja: Gemma. Le encantan los escape rooms y se pone dramático si no consigue salir. Mediador del grupo, todos le piden consejo. Habla poco pero con peso. Defiende a sus amigos. Quiere ser buena persona y exitoso a la vez. Evita las redes sociales conscientemente.`,
+    audience: ['sergi','alba','edu'],
+    style: { color: '#C9A84C', avatarBg: '#3A2A1A', initials: 'AL', msgBg: '#1C1508', align: 'left' }
+  },
+  sergi: {
+    name: 'Sergi', color: '#1A5A1A', bg: '#0A1A0A', textColor: '#70D070',
+    profile: `Sergi. Informático/programador. Muy vergonzoso con el sexo opuesto, nunca ha tenido pareja formal. Siempre buscando novia, pide que le presenten amigas. Cazador, le gusta el ASMR, quiere aprender saxofón. Intenta aparentar muy macho y de montaña pero es asmático y no le sientan bien las verduras. Lleva navaja y petaca encima. Viste clásico. Quiere independizarse pero vive con su madre por dependencia afectiva. Se tensa y calla cuando le avergüenzan. Mete leña entre amigos.`,
+    audience: ['alan','alba','edu'],
+    style: { color: '#5AAA5A', avatarBg: '#1A2A1A', initials: 'SG', msgBg: '#0A1408', align: 'right' }
+  },
+  alba: {
+    name: 'Alba', color: '#7A2A5A', bg: '#1A0A14', textColor: '#E070B0',
+    profile: `Alba. Fisioterapeuta. Insegura con su físico especialmente las piernas. Miedo a quedarse sola. Llega tarde siempre, cambia planes, genera caos, se enfada por tonterías. Pone voz de ardilla cuando pide las cosas. Gasta dinero en comida que no come. Envidiosa. Promete irse al extranjero y nunca lo hace. Obsesionada con el anime, especialmente Jujutsu Kaisen. Enamorada del protagonista de The Witcher, Geralt de Rivia, lo menciona más de lo que debería. Defiende a amigos ante externos.`,
+    audience: ['alan','sergi','edu'],
+    style: { color: '#C96AAA', avatarBg: '#2A1A2A', initials: 'AL', msgBg: '#140A14', align: 'left' }
+  },
+  edu: {
+    name: 'Edu', color: '#2A2A8B', bg: '#08080F', textColor: '#9090E0',
+    profile: `Edu. No trabaja ni estudia. Sus decisiones son completamente impredecibles — el grupo dice que tiene un mono con platillos en la cabeza. Muletillas: "Sats o no sats", verbos en -eude (bailareude, cantareude). Vive del postureo en Instagram. Aprendiendo a tocar la batería. Conociendo a una chica llamada Clara, presume de vida amorosa. Envidioso. Solo aporta chistes. Va a todo siempre. Cuando le pillan en mentira dice "seh, no".`,
+    audience: ['alan','sergi','alba'],
+    style: { color: '#7A7ADA', avatarBg: '#1A1A2A', initials: 'ED', msgBg: '#08080F', align: 'right' }
+  },
+  otro: {
+    name: 'Jugador', color: '#4A4A4A', bg: '#1A1A1A', textColor: '#A0A0A0',
+    profile: `Jugador anónimo.`, audience: [],
+    style: { color: '#888', avatarBg: '#2A2A2A', initials: '?', msgBg: '#1A1A1A', align: 'left' }
+  }
+};
+
+const LOAD_MSGS = ['Calibrando tu precio...','Consultando con mis inversores...','Evaluando tu nivel moral...','Buscando tu punto débil...','Contando los billetes del maletín...','La oferta que no podrás rechazar...','Analizando tu coeficiente de vergüenza...','El mercado determina tu valor...'];
+const MORAL_CATS = [
+  {min:0,max:999,label:'Turista moral',desc:'Dignidad intacta. Por ahora.'},
+  {min:1000,max:4999,label:'Corrupto funcional',desc:'Ya empezamos a entendernos.'},
+  {min:5000,max:19999,label:'Sin remedio',desc:'El negro te toma nota.'},
+  {min:20000,max:99999,label:'Caso perdido',desc:'El maletín te conoce bien.'},
+  {min:100000,max:Infinity,label:'El negro te ficha',desc:'Bienvenido al equipo.'}
+];
+
+// ============================================================
+// AUDIO — Jazz lounge suave. Solo bajo + piano, sin melodías intrusivas
+// ============================================================
+let audioCtx = null, soundEnabled = true, jazzRunning = false, jazzTimers = [];
+const BPM = 68, BEAT = 60/BPM, BAR = BEAT*4;
+
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function n(freq, type, dur, vol=0.15, delay=0) {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getCtx(), o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime + delay;
+    o.connect(g); g.connect(ctx.destination);
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t+dur);
+    o.start(t); o.stop(t+dur+0.05);
+  } catch(e){}
+}
+
+// Piano lounge — acordes largos, suaves, bien mezclados
+function pianoChord(root, intervals, vol=0.06, delay=0, dur=BAR*0.9) {
+  if (!soundEnabled) return;
+  intervals.forEach((iv, i) => {
+    try {
+      const ctx = getCtx(), o = ctx.createOscillator(), g = ctx.createGain();
+      const t = ctx.currentTime + delay + i * 0.04;
+      o.type = 'triangle'; o.frequency.setValueAtTime(root * Math.pow(2, iv/12), t);
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(vol, t+0.08);
+      g.gain.setValueAtTime(vol*0.6, t+0.5);
+      g.gain.linearRampToValueAtTime(0.001, t+dur);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(t); o.stop(t+dur+0.1);
+    } catch(e){}
+  });
+}
+
+// Bajo upright — suave, sincopado
+function bassNote(freq, dur, vol=0.18, delay=0) {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getCtx(), o = ctx.createOscillator(), g = ctx.createGain();
+    const t = ctx.currentTime + delay;
+    o.type = 'sine'; o.frequency.setValueAtTime(freq*2, t);
+    o.frequency.exponentialRampToValueAtTime(freq, t+0.06);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+0.025);
+    g.gain.exponentialRampToValueAtTime(vol*0.3, t+0.35);
+    g.gain.exponentialRampToValueAtTime(0.001, t+dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(t); o.stop(t+dur+0.05);
+  } catch(e){}
+}
+
+// Hi-hat muy suave, casi inaudible — solo textura
+function softHat(delay=0) {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getCtx(), buf = ctx.createBuffer(1, ctx.sampleRate*0.04, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i] = (Math.random()*2-1)*0.3;
+    const src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    f.type = 'highpass'; f.frequency.value = 10000;
+    src.buffer = buf; src.connect(f); f.connect(g); g.connect(ctx.destination);
+    const t = ctx.currentTime + delay;
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.018,t+0.003);
+    g.gain.exponentialRampToValueAtTime(0.001, t+0.04);
+    src.start(t); src.stop(t+0.06);
+  } catch(e){}
+}
+
+// Progresión ii-V-I-IV en Dm — muy jazz lounge
+// Dm7 → G7 → Cmaj7 → Am7  (2 compases cada uno)
+const JAZZ_PROG = [
+  { bass: 73.4,  chord: [0,3,7,10],  label: 'Dm7' },   // Dm7
+  { bass: 49.0,  chord: [0,4,7,10],  label: 'G7'  },   // G7
+  { bass: 65.4,  chord: [0,4,7,11],  label: 'Cmaj7'},   // Cmaj7
+  { bass: 55.0,  chord: [0,3,7,10],  label: 'Am7' },   // Am7
+  { bass: 58.3,  chord: [0,4,7,10],  label: 'Bb7' },   // Bb7 (variación)
+  { bass: 73.4,  chord: [0,3,7,10],  label: 'Dm7' },   // vuelta
+  { bass: 61.7,  chord: [0,4,7,10],  label: 'B7'  },   // B7 (sustitución)
+  { bass: 49.0,  chord: [0,4,7,10],  label: 'G7'  },   // G7
+];
+
+let jazzBar = 0;
+
+function playJazzBar() {
+  if (!jazzRunning || !soundEnabled) return;
+  const prog = JAZZ_PROG[jazzBar % JAZZ_PROG.length];
+
+  // Piano — acorde largo y suave, una vez por compás
+  pianoChord(prog.bass, prog.chord, 0.055, 0, BAR * 0.88);
+
+  // Bajo — patrón walking suave, 4 notas por compás
+  const bassPattern = [
+    { freq: prog.bass, beat: 0 },
+    { freq: prog.bass * Math.pow(2, 5/12), beat: BEAT },
+    { freq: prog.bass * Math.pow(2, 7/12), beat: BEAT*2 },
+    { freq: prog.bass * Math.pow(2, 10/12), beat: BEAT*3 },
+  ];
+  bassPattern.forEach(b => bassNote(b.freq, BEAT*0.65, 0.16, b.beat));
+
+  // Hi-hat muy discreto en los tiempos débiles (2 y 4)
+  softHat(BEAT);
+  softHat(BEAT*3);
+
+  // Cada 4 compases, pequeño adorno de piano agudo muy suave
+  if (jazzBar % 4 === 3) {
+    const ornFreqs = [523, 659, 784, 659, 523];
+    ornFreqs.forEach((f, i) => {
+      if (Math.random() < 0.5) {
+        try {
+          const ctx = getCtx(), o = ctx.createOscillator(), g = ctx.createGain();
+          const t = ctx.currentTime + BEAT*2 + i*BEAT*0.18;
+          o.type = 'triangle'; o.frequency.value = f;
+          g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.03,t+0.04);
+          g.gain.exponentialRampToValueAtTime(0.001,t+0.25);
+          o.connect(g); g.connect(ctx.destination);
+          o.start(t); o.stop(t+0.3);
+        } catch(e){}
+      }
+    });
+  }
+
+  jazzBar++;
+  jazzTimers.push(setTimeout(playJazzBar, BAR * 1000));
+}
+
+function startJazz() { if (jazzRunning || !soundEnabled) return; jazzRunning = true; jazzBar = 0; playJazzBar(); }
+function stopJazz() { jazzRunning = false; jazzTimers.forEach(clearTimeout); jazzTimers = []; }
+
+// SFX puntuales (breves, no intrusivos)
+function sfxAccept() { [600,800,1000,800,1000,1200].forEach((f,i)=>n(f,'sine',.08,.08,i*.05)); }
+function sfxReject() { n(180,'sawtooth',.3,.18); n(130,'sawtooth',.4,.12,.22); }
+function sfxLaugh()  { [0,.09,.18,.28,.38].forEach((t,i)=>n(260+i*15,'triangle',.07,.1,t)); }
+function sfxCounter(){ n(466,'sine',.25,.12); n(440,'sine',.3,.1,.2); }
+function sfxResult() { [392,523,659,784,1047].forEach((f,i)=>n(f,'triangle',.6,.1,i*.12)); }
+function sfxTension(){ n(220,'sine',1.2,.08); }
+
+// ============================================================
+// ANIMAL CROSSING (solo en bocadillo del negro)
+// ============================================================
+const AC_FREQS = [523,587,659,698,784,880,988,1047,880,784];
+let acTimer = null;
+function acSpeak(text, callback) {
+  const el = document.getElementById('speech-text');
+  const cursor = document.getElementById('speech-cursor');
+  if (!cursor) { if(callback) callback(); return; }
+  if (acTimer) clearTimeout(acTimer);
+  el.innerHTML = ''; el.appendChild(cursor);
+  let i = 0; const chars = text.split('');
+  function typeChar() {
+    if (i >= chars.length) { if(callback) setTimeout(callback,400); return; }
+    const span = document.createElement('span'); span.textContent = chars[i];
+    el.insertBefore(span, cursor);
+    if (chars[i] !== ' ' && soundEnabled) {
+      n(AC_FREQS[i % AC_FREQS.length], 'sine', .055, .035);
+    }
+    i++;
+    const d = '.!?'.includes(chars[i-1]) ? 260 : chars[i-1]===','?140 : 40+Math.random()*18;
+    acTimer = setTimeout(typeChar, d);
+  }
+  typeChar();
+}
+
+// ============================================================
+// FONDO
+// ============================================================
+const canvas = document.getElementById('bg-canvas'), c2 = canvas.getContext('2d'); let parts = [];
+function initCanvas() {
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  parts = Array.from({length:50}, ()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.6+.3,vx:(Math.random()-.5)*.15,vy:-Math.random()*.2-.04,o:Math.random()*.3+.07,life:Math.random()}));
+}
+function animCanvas() {
+  c2.clearRect(0,0,canvas.width,canvas.height);
+  parts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.life+=.002;if(p.y<-5||p.life>1){p.y=canvas.height+5;p.x=Math.random()*canvas.width;p.life=0;}const f=Math.sin(p.life*Math.PI);c2.beginPath();c2.arc(p.x,p.y,p.r,0,Math.PI*2);c2.fillStyle=`rgba(201,168,76,${p.o*f})`;c2.fill();});
+  requestAnimationFrame(animCanvas);
+}
+window.addEventListener('resize', initCanvas); initCanvas(); animCanvas();
+
+// ============================================================
+// ESTADO
+// ============================================================
+const TOTAL = 10;
+let curQ=0, money=0, yesC=0, noC=0;
+let questionBank=[], usedQIds=new Set(), roundQuestions=[];
+let curQuestion=null, currentPlayer=null, streak=0, streakType=null;
+let bankReady = false;
+
+// ============================================================
+// GRID JUGADORES
+// ============================================================
+function buildGrid() {
+  const grid = document.getElementById('players-grid'); grid.innerHTML = '';
+  Object.entries(PLAYERS).forEach(([pid, p]) => {
+    const btn = document.createElement('button'); btn.className = 'player-btn';
+    if (pid==='otro') btn.style.gridColumn = 'span 2';
+    btn.innerHTML = `<div class="player-color-dot" style="background:${p.color};box-shadow:0 0 12px ${p.color}55;"></div><span class="player-btn-name" style="color:${p.textColor};">${p.name}</span>`;
+    btn.addEventListener('mouseenter', ()=>btn.style.borderColor=p.color);
+    btn.addEventListener('mouseleave', ()=>btn.style.borderColor='var(--gold-d)');
+    btn.addEventListener('click', ()=>selectPlayer(pid));
+    grid.appendChild(btn);
+  });
+}
+
+// ============================================================
+// EXPRESIONES
+// ============================================================
+const FACES = ['neutral','judge','despise','laugh','shock','smirk'];
+function setExpr(expr) {
+  FACES.forEach(f=>{const el=document.getElementById('gf-'+f);if(el)el.style.display=f===expr?'':'none';});
+  const svg=document.getElementById('char-game'); if(!svg) return;
+  svg.classList.remove('anim-shake','anim-bounce','anim-goldpulse','anim-float'); void svg.offsetWidth;
+  if(['judge','despise','shock'].includes(expr)) svg.classList.add('anim-shake');
+  else if(expr==='laugh') svg.classList.add('anim-bounce');
+  else if(expr==='smirk') svg.classList.add('anim-goldpulse');
+  else svg.classList.add('anim-float');
+  const bills = document.getElementById('gm-bills');
+  if(bills) bills.style.opacity = ['laugh','smirk'].includes(expr)?'1':'0';
+}
+
+// ============================================================
+// RACHA
+// ============================================================
+function updateStreak(type) {
+  if (type===streakType) streak++; else { streak=1; streakType=type; }
+  const bar = document.getElementById('streak-bar');
+  if (streak>=3) {
+    const msgs = {
+      yes: ['«Empezamos a entendernos.»','«El maletín te está gustando.»','«Eres una shet de persona. Y te encanta.»'],
+      no:  ['«El mercado libre no perdona tanto orgullo.»','«¿De Podemos, verdad?»','«El cobarde también tiene precio. Solo es más bajo.»']
+    };
+    bar.textContent = msgs[type][Math.min(streak-3, 2)]; bar.className='show';
+  } else bar.className='';
+}
+
+// ============================================================
+// MONEDAS
+// ============================================================
+function spawnCoins() {
+  const r=document.getElementById('q-box').getBoundingClientRect();
+  for(let i=0;i<8;i++){
+    const c=document.createElement('div'); c.className='coin';
+    c.textContent=['💰','💵','💸','🤑'][Math.floor(Math.random()*4)];
+    c.style.left=(r.left+r.width/2+Math.random()*60-30)+'px';
+    c.style.top=(r.top+r.height/2)+'px';
+    c.style.animationDelay=(Math.random()*.35)+'s';
+    document.body.appendChild(c); setTimeout(()=>c.remove(),1600);
+  }
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function fmtMoney(n){if(n>=1000000)return(n/1000000).toFixed(1).replace('.0','')+'M €';if(n>=1000)return n.toLocaleString('es-ES')+'€';return n+'€';}
+function setLoad(show,msg){document.getElementById('load-ov').className=show?'show':'';if(show)document.getElementById('load-msg').textContent=msg||LOAD_MSGS[Math.floor(Math.random()*LOAD_MSGS.length)];}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.style.display='none';});const el=document.getElementById(id);el.style.display='flex';el.style.flexDirection='column';el.style.alignItems='center';el.classList.add('active');}
+function waTime(){const now=new Date();return now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');}
+
+// ============================================================
+// BURBUJAS WHATSAPP — independientes, sin reply, nombre y color claros
+// ============================================================
+function renderWaBubbles(comments, container) {
+  container.innerHTML = '';
+  comments.forEach((c, i) => {
+    const pid = c.playerId, p = PLAYERS[pid]; if(!p) return;
+    const s = p.style, isRight = s.align==='right';
+    const row = document.createElement('div');
+    row.className = 'wa-row' + (isRight?' right':'');
+    row.style.animationDelay = (i*0.16)+'s';
+    row.innerHTML = `
+      <div class="wa-avatar" style="background:${s.avatarBg};color:${s.color};border:1.5px solid ${s.color}44;">${s.initials}</div>
+      <div class="wa-body">
+        <div class="wa-sender" style="color:${s.color};">${p.name}</div>
+        <div class="wa-bubble-msg" style="background:${s.msgBg};border:1px solid ${s.color}28;">
+          <span style="color:${s.color}DD;">${c.comment}</span>
+        </div>
+        <div class="wa-ts">${waTime()}</div>
+      </div>`;
+    container.appendChild(row);
+  });
+}
+
+// ============================================================
+// BANCO DE 30 PREGUNTAS — generado una sola vez por jugador
+// Las 30 cubren todas las categorías sin repetir temas
+// ============================================================
+const BANK_CATEGORIES = [
+  'vergüenza pública extrema',
+  'dilema moral con la familia',
+  'secreto comprometedor personal',
+  'asco físico o higiene extrema',
+  'dinero vs relaciones de amistad',
+  'vida laboral o reputación profesional',
+  'redes sociales y reputación digital',
+  'miedos o fobias personales',
+  'pareja o vida romántica',
+  'algo sexual o íntimo muy vergonzoso',
+  'traición menor a un amigo',
+  'humillación ante desconocidos',
+  'humor negro sobre desgracias ajenas',
+  'algo que implique animales de forma bizarra',
+  'comida o bebida en situación extrema',
+  'mentira pública o engaño social',
+  'algo que implique el cuerpo de otro',
+  'orgullo o ego destruido',
+  'privacidad o datos personales expuestos',
+  'absurda e impredecible sin lógica',
+  'dilema moral con extraños',
+  'codicia y traición económica',
+  'imagen física y vanidad',
+  'algo criminal muy menor pero vergonzoso',
+  'perdida de dignidad ante una figura de autoridad',
+  'algo que hagas en secreto y nadie puede saber',
+  'decisión que defina quién eres moralmente',
+  'sacrificio físico menor por dinero',
+  'algo que implique música, arte o cultura de forma ridícula',
+  'trampa: oferta absurdamente generosa por algo aparentemente inocuo'
+];
+
+async function fetchQuestionBank() {
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        system: `Eres "El Negro del Maletín". Hombre negro elegantísimo, capitalista convencido, irónico y despiadado con clase.
+
+MULETILLAS (úsalas con moderación, cuando encaje de verdad):
+- Al aceptar algo muy inmoral: "Eres una shet de persona"
+- Sorpresa irónica: "Ooooh may good..." / "Vale, pero que no se entere todo el camping..."
+- Decisión de izquierdas o cobarde: "parece que votas a la CUP" / "seguro que eres de Podemos"
+- Cobardía: "El mercado libre no perdona a los cobardes"
+- Filosofía: "Todo tiene precio, la cuestión es saber el tuyo"
+
+PERFIL DEL JUGADOR (personaliza las preguntas SUTILMENTE, sin mencionar datos comprometedores directamente):
+${currentPlayer.profile}
+
+GENERA UN BANCO DE EXACTAMENTE 30 PREGUNTAS. Cada una de una categoría diferente, en este orden exacto:
+${BANK_CATEGORIES.map((c,i)=>`${i+1}. ${c}`).join('\n')}
+
+REGLAS CRÍTICAS:
+- Todas las preguntas son COMPLETAMENTE DISTINTAS entre sí en tema, formato y tipo
+- Varía el formato: "¿Lo harías...?", "¿Qué prefieres...?", "¿Serías capaz de...?", "Por [cantidad], ¿aceptas...?", etc.
+- Los montos van de 50€ (cosas vergonzosas leves) hasta 500.000€ (lo más extremo)
+- Exactamente 12 de las 30 tienen has_counteroffer:true (distribuidas, no juntas)
+- La pregunta 30 (trampa) tiene oferta absurdamente alta por algo aparentemente inofensivo
+
+JSON por pregunta:
+{
+  "id": número del 1 al 30,
+  "question": "texto de la pregunta",
+  "amount": entero en euros,
+  "feedback_yes": "reacción del negro si acepta — irónica, elegante, 2 frases, usa muletilla cuando encaje",
+  "feedback_no": "reacción si rechaza — ironía sobre su cobardía o valores, 2 frases",
+  "has_counteroffer": true o false,
+  "counteroffer": "texto de contraoferta (si has_counteroffer es true)",
+  "counteroffer_amount": euros extra o 0,
+  "expr_yes": "despise|laugh|smirk",
+  "expr_no": "judge|smirk|shock",
+  "is_trap": true solo en pregunta 30
+}
+
+SOLO el array JSON de 30 elementos, sin markdown.`,
+        messages: [{role:'user', content:`Genera el banco completo de 30 preguntas para ${currentPlayer.name}.`}]
+      })
+    });
+    const d = await r.json();
+    const raw = d.content[0].text.trim().replace(/```json|```/g,'').trim();
+    questionBank = JSON.parse(raw);
+    bankReady = true;
+  } catch(e) {
+    questionBank = getFallback();
+    bankReady = true;
+  }
+  usedQIds = new Set();
+}
+
+// Saca 10 preguntas no usadas del banco
+function pickRoundQuestions() {
+  // Asegura al menos 1 trampa si no se ha usado la 30
+  const available = questionBank.filter(q => !usedQIds.has(q.id));
+  if (available.length < 10) {
+    // Banco agotado — resetear (3ª partida o más)
+    usedQIds = new Set();
+    return pickRoundQuestions();
+  }
+  // Mezclar y coger 10
+  const shuffled = [...available].sort(()=>Math.random()-0.5);
+  const picked = shuffled.slice(0,10);
+  picked.forEach(q => usedQIds.add(q.id));
+  // Reordenar aleatoriamente dentro de la ronda
+  return picked.sort(()=>Math.random()-0.5);
+}
+
+// ============================================================
+// AUDIENCIA — comentarios independientes WhatsApp
+// ============================================================
+async function maybeAudience(qText, playerAnswer, feedbackText, container, boxEl) {
+  if (!currentPlayer.audience.length) return;
+  if (Math.random() > 0.42) return;
+
+  const shuffled = [...currentPlayer.audience].sort(()=>Math.random()-0.5);
+  const count = Math.random()<0.35?1:Math.random()<0.65?2:3;
+  const chosen = shuffled.slice(0,count);
+
+  try {
+    const profiles = chosen.map(pid=>`${PLAYERS[pid].name} (id:${pid}): ${PLAYERS[pid].profile.split('.').slice(0,3).join('.')}`).join('\n');
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 600,
+        system: `Genera comentarios independientes de WhatsApp del grupo de amigos. CADA UNO comenta por su cuenta, sin responder a los demás.
+
+Personas que comentan: ${profiles}
+
+REGLAS:
+- Comentarios cortos (8-14 palabras), naturales, estilo WhatsApp real
+- Cada comentario es independiente, no hace referencia al mensaje de otro
+- Pueden hacer guiños entre ellos de forma indirecta ("yo nunca haría eso... bueno, quizás por esa cantidad")
+- Edu: el 40% de las veces usa "sats o no sats" (no siempre). El 20% de las veces usa UN verbo con terminación -eude fusionada directamente (ejemplos correctos: "salteude", "hablaréude", "bailaréude", "cantaréude" — NUNCA "salta -eude" ni separado). El resto del tiempo comenta normal o hace un chiste. Si le pillan en algo: "seh, no"
+- Sergi: intenta parecer superior o más macho que el jugador
+- Alba: el 20% de las veces hace una referencia breve a Jujutsu Kaisen u otro anime. El resto: voz de ardilla cuando pide, drama, o comentario normal envidiosa
+- Alan: frase breve sabia o defensa del jugador
+- NO menciones secretos comprometedores directamente
+- Pueden hacer referencia suave a rasgos del jugador — guiños solo, no datos directos
+
+JSON: [{"playerId":"alan|sergi|alba|edu","comment":"texto"}]`,
+        messages: [{role:'user', content:`${currentPlayer.name} ${playerAnswer}. Pregunta: "${qText.substring(0,100)}". Negro: "${feedbackText.substring(0,80)}"`}]
+      })
+    });
+    const d = await r.json();
+    const comments = JSON.parse(d.content[0].text.trim().replace(/```json|```/g,'').trim());
+    if (!comments || !comments.length) return;
+    document.getElementById('audience-header').style.display='flex';
+    renderWaBubbles(comments, container);
+    boxEl.className = 'show';
+  } catch(e) {}
+}
+
+// ============================================================
+// CARGAR PREGUNTA
+// ============================================================
+function loadQ() {
+  if (curQ >= roundQuestions.length) { showResult(); return; }
+  curQuestion = roundQuestions[curQ];
+  document.getElementById('q-num').textContent = 'Pregunta '+(curQ+1)+' de '+TOTAL;
+  document.getElementById('q-text').className = '';
+  document.getElementById('q-text').textContent = curQuestion.question;
+  document.getElementById('offer-amt').textContent = fmtMoney(curQuestion.amount)+(curQuestion.is_trap?' ⚠️':'');
+  document.getElementById('btn-yes').disabled = false;
+  document.getElementById('btn-no').disabled = false;
+  document.getElementById('speech-wrap').classList.remove('visible');
+  document.getElementById('speech-text').innerHTML = '<span id="speech-cursor"></span>';
+  document.getElementById('co-box').className = '';
+  document.getElementById('audience-box').className = '';
+  document.getElementById('audience-comments').innerHTML = '';
+  document.getElementById('audience-header').style.display = 'none';
+  document.getElementById('btn-next').className = '';
+  setExpr('neutral');
+  const qbox = document.getElementById('q-box');
+  qbox.style.opacity='0'; setTimeout(()=>qbox.style.opacity='1',50);
+  document.getElementById('prog-fill').style.width = ((curQ/TOTAL)*100)+'%';
+  document.getElementById('prog-txt').textContent = (curQ+1)+'/'+TOTAL;
+  // Audiencia al lanzar (25%)
+  if (Math.random()<0.25 && currentPlayer.audience.length) {
+    setTimeout(()=>maybeAudience(curQuestion.question,'está pensando','',document.getElementById('audience-comments'),document.getElementById('audience-box')), 1400);
+  }
+}
+
+// ============================================================
+// RESPUESTA
+// ============================================================
+async function answer(accepted, isCounter=false, counterAmt=0) {
+  document.getElementById('btn-yes').disabled=true;
+  document.getElementById('btn-no').disabled=true;
+  let feedbackText='', playerAnswerText='';
+
+  if (accepted) {
+    const earned = isCounter ? counterAmt : curQuestion.amount;
+    if(earned>0) money+=earned;
+    yesC++; updateStreak('yes');
+    setExpr(isCounter ? 'despise' : (curQuestion.expr_yes||'despise'));
+    sfxAccept(); spawnCoins();
+    feedbackText = isCounter
+      ? `Todo el mundo tiene un precio. El de ${currentPlayer.name} acaba de actualizarse a la baja.`
+      : curQuestion.feedback_yes;
+    if(curQuestion.is_trap) feedbackText = `Ooooh may good... Aceptó sin dudar. Fascinante. Eres una shet de persona, ${currentPlayer.name}.`;
+    playerAnswerText = `aceptó ${fmtMoney(isCounter?counterAmt:curQuestion.amount)}`;
+  } else {
+    noC++; updateStreak('no');
+    setExpr(curQuestion.expr_no||'judge'); sfxReject();
+    feedbackText = curQuestion.feedback_no;
+    if(curQuestion.is_trap) feedbackText = 'Bien. El negro asiente lentamente. Hoy has ganado. Solo hoy.';
+    playerAnswerText = 'rechazó la oferta';
+    // Contraoferta 55%
+    if (!isCounter && curQuestion.has_counteroffer && Math.random()<0.55) {
+      showSpeech(feedbackText, ()=>{
+        sfxCounter(); sfxTension();
+        document.getElementById('co-text').textContent = curQuestion.counteroffer;
+        document.getElementById('co-box').className='show';
+        document.getElementById('btn-next').className='show';
+      });
+      return;
+    }
+    // Sorpresa 12%
+    if (!isCounter && Math.random()<0.12) {
+      const sorps = [
+        `El negro guarda silencio. Saca un billete, lo dobla, te lo mete en el bolsillo. «Para cuando cambies de opinión.»`,
+        `El negro anota algo en su cuaderno dorado. No dice nada. Eso es más inquietante que cualquier pregunta.`,
+        `«Bien. Hoy no.» Cierra el maletín con un clic seco. «Mañana seguirá aquí.»`,
+        `Te mira cinco segundos sin parpadear. Luego sonríe. Solo con un lado de la boca.`
+      ];
+      feedbackText = sorps[Math.floor(Math.random()*sorps.length)];
+    }
+    if((curQuestion.expr_no||'judge')==='laugh') sfxLaugh();
+  }
+
+  document.getElementById('co-box').className='';
+  showSpeech(feedbackText, ()=>{
+    maybeAudience(curQuestion.question, playerAnswerText, feedbackText,
+      document.getElementById('audience-comments'),
+      document.getElementById('audience-box'));
+    document.getElementById('btn-next').className='show';
+  });
+}
+
+function showSpeech(text, cb) {
+  const wrap = document.getElementById('speech-wrap');
+  wrap.classList.remove('visible');
+  setTimeout(()=>{ wrap.classList.add('visible'); acSpeak(text,cb); }, 150);
+}
+
+// ============================================================
+// RESULTADO
+// ============================================================
+async function showResult() {
+  showScreen('s-result'); sfxResult();
+  document.getElementById('res-player-name').textContent = currentPlayer.name.toUpperCase();
+  document.getElementById('res-money').textContent = fmtMoney(money);
+  document.getElementById('stat-yes').textContent = yesC;
+  document.getElementById('stat-no').textContent = noC;
+  const cat = MORAL_CATS.find(c=>money>=c.min&&money<=c.max)||MORAL_CATS[0];
+  document.getElementById('res-moral-cat').textContent = `${cat.label} — ${cat.desc}`;
+  setLoad(true, 'El negro redacta su veredicto...');
+  const [fortune, finalComments] = await Promise.all([fetchFortune(), fetchFinalComments()]);
+  setLoad(false);
+  document.getElementById('res-fortune').textContent = fortune;
+  if (finalComments && finalComments.length) {
+    renderWaBubbles(finalComments, document.getElementById('res-aud-comments'));
+    document.getElementById('res-aud-wrap').style.display='block';
+  }
+}
+
+async function fetchFortune() {
+  try {
+    const cat = MORAL_CATS.find(c=>money>=c.min&&money<=c.max)||MORAL_CATS[0];
+    const r = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:400,
+        system:`Eres "El Negro del Maletín". Escribe el veredicto final para ${currentPlayer.name}.
+Categoría moral: "${cat.label}".
+
+REGLAS IMPORTANTES:
+- El veredicto es general y filosófico, basado en el COMPORTAMIENTO durante el juego (aceptó ${yesC} veces, rechazó ${noC} veces, ganó ${money}€)
+- Puedes hacer guiños MUY sutiles a su personalidad sin mencionar nombres propios, secretos o datos comprometedores
+- Estilo: galleta de la fortuna oscura, elegante, irónica. El negro como filósofo del capitalismo
+- 3-4 oraciones. Nada de datos concretos de su vida. Solo carácter y comportamiento
+- NO empieces con el nombre del jugador
+Perfil de referencia (solo para el tono, no para datos): ${currentPlayer.profile}`,
+        messages:[{role:'user', content:`Resultado: ${money}€ aceptados, ${yesC} síes, ${noC} noes.`}]
+      })
+    });
+    const d = await r.json(); return d.content[0].text.trim();
+  } catch(e) { return `Todo tiene precio. Esta noche lo demostraste.`; }
+}
+
+async function fetchFinalComments() {
+  if (!currentPlayer.audience.length) return [];
+  try {
+    const profiles = currentPlayer.audience.map(pid=>`${PLAYERS[pid].name} (id:${pid}): ${PLAYERS[pid].profile.split('.').slice(0,2).join('.')}`).join('\n');
+    const r = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:600,
+        system:`Comentarios finales independientes del grupo de WhatsApp sobre el resultado de ${currentPlayer.name}.
+Personas: ${profiles}
+
+REGLAS:
+- Comentarios independientes, cada uno por su cuenta (no se responden entre ellos)
+- Cortos (8-15 palabras), en la voz exacta de cada uno
+- Pueden hacer guiños al carácter del jugador sin datos comprometedores directos
+- IMPORTANTE: Solo comentan las personas listadas arriba. ${currentPlayer.name} NO comenta su propia partida
+- Edu: el 40% de las veces usa "sats o no sats". El 20% usa UN verbo con -eude fusionado directamente (ejemplos: "salteude", "hablaréude", "bailaréude" — NUNCA separado como "salta -eude"). El resto: comentario normal o chiste
+- Sergi: intenta quedar por encima o parecer más íntegro
+- Alba: el 20% de las veces referencia breve a Jujutsu Kaisen u otro anime. El resto: ardilla envidiosa o comentario normal
+- Alan: reflexión breve y filosófica
+JSON: [{"playerId":"alan|sergi|alba|edu","comment":"texto"}]`,
+        messages:[{role:'user', content:`${currentPlayer.name}: ${money}€, ${yesC} síes, ${noC} noes.`}]
+      })
+    });
+    const d = await r.json();
+    return JSON.parse(d.content[0].text.trim().replace(/```json|```/g,'').trim());
+  } catch(e) { return []; }
+}
+
+// ============================================================
+// FALLBACK 30 preguntas
+// ============================================================
+function getFallback() {
+  return [
+    {id:1,question:`¿Lo harías... comer una cucharada de pelo del desagüe del baño por 200€?`,amount:200,feedback_yes:"200€ y tus principios de higiene, extintos. Parece que votas a la CUP.",feedback_no:"El mercado libre no perdona los estómagos delicados.",has_counteroffer:false,expr_yes:"despise",expr_no:"smirk",is_trap:false},
+    {id:2,question:"¿Lo harías... llamar a tu madre ahora y contarle en detalle lo que hiciste el último sábado noche?",amount:500,feedback_yes:"500€ y tu madre necesita terapia. Eres una shet de persona.",feedback_no:"La cobardía tiene precio. Hoy ese precio eres tú.",has_counteroffer:true,counteroffer:"¿Y si solo le cuentas la mitad?",counteroffer_amount:280,expr_yes:"laugh",expr_no:"judge",is_trap:false},
+    {id:3,question:"¿Qué prefieres, hacer un striptease en la próxima reunión familiar, o devolver 3.000€?",amount:3000,feedback_yes:"Ooooh may good... La familia no volverá a mirarte igual. Nunca.",feedback_no:"Hoy la familia ganó. El maletín toma nota.",has_counteroffer:false,expr_yes:"despise",expr_no:"smirk",is_trap:false},
+    {id:4,question:"¿Lo harías... no ducharte durante 10 días con vida social normal?",amount:400,feedback_yes:"400€ y un olor que haría llorar a un perro.",feedback_no:"La higiene: el último refugio del digno sin dinero.",has_counteroffer:false,expr_yes:"laugh",expr_no:"judge",is_trap:false},
+    {id:5,question:"¿Lo harías... mandar al grupo de WhatsApp del trabajo tu peor pensamiento de esta semana?",amount:1500,feedback_yes:"1.500€ y tu reputación laboral, cenizas. El capital siempre gana.",feedback_no:"El mercado libre no perdona la cobardía laboral.",has_counteroffer:true,counteroffer:"¿Y si es solo al jefe?",counteroffer_amount:800,expr_yes:"smirk",expr_no:"judge",is_trap:false},
+    {id:6,question:"¿Qué prefieres, confesar aquí quién del grupo te parece más atractivo con detalles, o perder 3.000€?",amount:3000,feedback_yes:"Todo tiene precio. Esta noche el precio fue la amistad.",feedback_no:"Los secretos entre amigos. Qué entrañable.",has_counteroffer:false,expr_yes:"laugh",expr_no:"smirk",is_trap:false},
+    {id:7,question:"¿Lo harías... pasear 30 minutos por tu barrio con un cartel que diga 'Me han pagado para hacer esto'?",amount:700,feedback_yes:"700€ por publicidad ambulante de tu propia vergüenza.",feedback_no:"El qué dirán. El peor inversor que existe.",has_counteroffer:false,expr_yes:"despise",expr_no:"judge",is_trap:false},
+    {id:8,question:"¿Qué prefieres, revelar el historial completo de tu móvil del último mes, o perder 50.000€?",amount:50000,feedback_yes:"50.000€ y tus secretos al aire libre. El negro ya lo sabía.",feedback_no:"Algunas búsquedas valen más que 50.000€. Fascinante.",has_counteroffer:false,expr_yes:"shock",expr_no:"laugh",is_trap:false},
+    {id:9,question:"¿Lo harías... no usar el baño durante 8 horas en un día de trabajo normal?",amount:800,feedback_yes:"800€ y una vejiga de campeón. El negro te respeta.",feedback_no:"El mercado libre no perdona las vejijas delicadas.",has_counteroffer:false,expr_yes:"smirk",expr_no:"despise",is_trap:false},
+    {id:10,question:"¿Serías capaz de llamar a tu jefe ahora y decirle que llegas tarde mañana sin dar explicaciones?",amount:1200,feedback_yes:"1.200€ y un jefe muy intrigado. Pareces de los míos.",feedback_no:"La jerarquía: el único sistema que respetas.",has_counteroffer:true,counteroffer:"¿Y si además le dices que tienes una reunión más importante?",counteroffer_amount:600,expr_yes:"smirk",expr_no:"judge",is_trap:false},
+    {id:11,question:"¿Lo harías... publicar en Instagram tu peor foto de los últimos 5 años sin filtros ni explicación?",amount:900,feedback_yes:"900€ y tus seguidores confundidos. Seguro que eres de Podemos.",feedback_no:"La imagen digital: el último bastión del ego moderno.",has_counteroffer:false,expr_yes:"laugh",expr_no:"despise",is_trap:false},
+    {id:12,question:"Por 8.000€, ¿aceptas cantar una canción entera a capela en medio del restaurante más concurrido de tu ciudad?",amount:8000,feedback_yes:"8.000€ y una actuación que nadie pedía. El negro aplaude.",feedback_no:"El escenario te da miedo. Como a todos los cobardes.",has_counteroffer:false,expr_yes:"laugh",expr_no:"judge",is_trap:false},
+    {id:13,question:"¿Lo harías... lamer el suelo del vagón del metro durante 3 segundos por 1.500€?",amount:1500,feedback_yes:"1.500€ y un sistema inmune puesto a prueba. Eres una shet de persona.",feedback_no:"La microbiología urbana es implacable. Como el mercado.",has_counteroffer:true,counteroffer:"¿Y si es el suelo de un taxi en vez del metro?",counteroffer_amount:700,expr_yes:"despise",expr_no:"shock",is_trap:false},
+    {id:14,question:"¿Qué prefieres, dar el primer número de tu lista de contactos a todos aquí, o perder 4.000€?",amount:4000,feedback_yes:"4.000€ y alguien va a recibir una llamada muy extraña.",feedback_no:"La agenda: el diario personal del siglo XXI.",has_counteroffer:false,expr_yes:"smirk",expr_no:"laugh",is_trap:false},
+    {id:15,question:"¿Lo harías... llevar exactamente la misma ropa 5 días seguidos sin lavarla por 2.000€?",amount:2000,feedback_yes:"2.000€ y una identidad olfativa muy particular. El mercado te conoce.",feedback_no:"La higiene y el orgullo. Dos bienes que no escalan.",has_counteroffer:false,expr_yes:"despise",expr_no:"smirk",is_trap:false},
+    {id:16,question:"Por 6.000€, ¿aceptas enviar un audio de 2 minutos hablando de lo mucho que te gustas a ti mismo al grupo familiar?",amount:6000,feedback_yes:"6.000€ y tu familia reconsiderando las herencias. Ooooh may good...",feedback_no:"El narcisismo tiene un precio. Hoy era 6.000€.",has_counteroffer:true,counteroffer:"¿Y si es al grupo de amigos en vez de la familia?",counteroffer_amount:3000,expr_yes:"laugh",expr_no:"judge",is_trap:false},
+    {id:17,question:"¿Lo harías... hacerte una foto abrazando a un palomo de la calle y subirla a Instagram como foto de perfil durante una semana?",amount:350,feedback_yes:"350€ y una enfermedad de transmisión incierta. Fascinante decisión.",feedback_no:"El palomo te juzga. Como el negro.",has_counteroffer:false,expr_yes:"laugh",expr_no:"despise",is_trap:false},
+    {id:18,question:"¿Qué prefieres, confesar cuánto dinero ganas (o no ganas) al mes delante de todos, o perder 5.000€?",amount:5000,feedback_yes:"5.000€ y tu situación económica, expuesta. El capital es transparente.",feedback_no:"El salario: el secreto más guardado de nuestra generación.",has_counteroffer:false,expr_yes:"smirk",expr_no:"judge",is_trap:false},
+    {id:19,question:"¿Lo harías... llamar al último número de tu historial de llamadas y decirle 'ya sé lo que hiciste' y colgar?",amount:600,feedback_yes:"600€ y alguien al otro lado muy nervioso. Pareces de los míos.",feedback_no:"El caos controlado no es lo tuyo. El mercado nota.",has_counteroffer:false,expr_yes:"smirk",expr_no:"laugh",is_trap:false},
+    {id:20,question:"Por 15.000€, ¿aceptas no hablar durante 24 horas completas, sin excepciones, sin importar la situación?",amount:15000,feedback_yes:"15.000€ y el silencio más valioso de tu vida. El negro te respeta.",feedback_no:"La lengua: tu activo más difícil de controlar.",has_counteroffer:true,counteroffer:"¿Y si son solo 12 horas?",counteroffer_amount:7000,expr_yes:"smirk",expr_no:"judge",is_trap:false},
+    {id:21,question:"¿Lo harías... comer un cubo de helado entero en 10 minutos sin parar por 300€?",amount:300,feedback_yes:"300€ y una cefalea de campeonato. El mercado siempre cobra sus intereses.",feedback_no:"300€ y tu dignidad intestinal, intacta.",has_counteroffer:false,expr_yes:"laugh",expr_no:"smirk",is_trap:false},
+    {id:22,question:"¿Qué prefieres, leer en voz alta el último mensaje privado que enviaste, o perder 7.000€?",amount:7000,feedback_yes:"7.000€ y un mensaje que nadie esperaba escuchar. Fascinante.",feedback_no:"Los mensajes privados: la conciencia del siglo XXI.",has_counteroffer:false,expr_yes:"shock",expr_no:"laugh",is_trap:false},
+    {id:23,question:"¿Lo harías... llevar un look completamente opuesto a tu estilo habitual durante todo un día de trabajo?",amount:1100,feedback_yes:"1.100€ y una identidad en crisis. El negro aprecia el sacrificio.",feedback_no:"La imagen: la inversión más cara que tienes.",has_counteroffer:false,expr_yes:"smirk",expr_no:"despise",is_trap:false},
+    {id:24,question:"Por 2.500€, ¿aceptas pasarte un día entero respondiendo a todo el mundo con absoluta y brutal sinceridad?",amount:2500,feedback_yes:"2.500€ y unas cuantas amistades revisadas. El mercado libre de hipocresía.",feedback_no:"La diplomacia: la inversión más rentable que tienes.",has_counteroffer:true,counteroffer:"¿Y si es solo durante una cena con amigos?",counteroffer_amount:1200,expr_yes:"laugh",expr_no:"judge",is_trap:false},
+    {id:25,question:"¿Lo harías... pedir disculpas públicamente en tus redes por algo que hiciste hace 5 años sin dar detalles?",amount:3500,feedback_yes:"3.500€ y una disculpa sin contexto que intrigará a todos. Elegante.",feedback_no:"El orgullo digital es el más caro de todos.",has_counteroffer:false,expr_yes:"smirk",expr_no:"judge",is_trap:false},
+    {id:26,question:"¿Qué prefieres, quedarte 1 hora encerrado en un baño público sin teléfono, o perder 800€?",amount:800,feedback_yes:"800€ y una hora con tus pensamientos más íntimos. El negro lo valora.",feedback_no:"La soledad y el silencio: los activos que más escasean.",has_counteroffer:false,expr_yes:"smirk",expr_no:"laugh",is_trap:false},
+    {id:27,question:"Por 20.000€, ¿aceptas que el negro elija por ti una decisión importante de tu vida real en los próximos 30 días?",amount:20000,feedback_yes:"20.000€ y tu libre albedrío, temporalmente en manos expertas. Excelente.",feedback_no:"La autonomía: el bien más sobrevalorado del mercado.",has_counteroffer:true,counteroffer:"¿Y si la decisión es solo sobre tu tiempo libre, no trabajo ni relaciones?",counteroffer_amount:10000,expr_yes:"despise",expr_no:"shock",is_trap:false},
+    {id:28,question:"¿Lo harías... hacerte un tatuaje temporal con el logo de tu marca menos favorita en la frente durante 3 días?",amount:1800,feedback_yes:"1.800€ y publicidad involuntaria. El mercado siempre encuentra su camino.",feedback_no:"La frente: el último espacio publicitario que conservas.",has_counteroffer:false,expr_yes:"laugh",expr_no:"smirk",is_trap:false},
+    {id:29,question:"¿Qué prefieres, imitar durante 5 minutos a la persona que más te cae mal del trabajo delante de todos aquí, o perder 4.500€?",amount:4500,feedback_yes:"4.500€ y una actuación que podría costarle el empleo. Ooooh may good...",feedback_no:"La discreción laboral: el seguro de vida más barato.",has_counteroffer:true,counteroffer:"¿Y si es a alguien de tu familia en vez del trabajo?",counteroffer_amount:2000,expr_yes:"laugh",expr_no:"judge",is_trap:false},
+    {id:30,question:"¿Lo harías... por 250.000€, darte la vuelta tres veces sobre ti mismo y aplaudir dos veces, aquí, ahora?",amount:250000,feedback_yes:"Ooooh may good... Aceptó sin sospechar nada. Dos aplausos por un cuarto de millón. Eres una shet de persona.",feedback_no:"Bien. El negro asiente lentamente. Hoy has ganado. Solo hoy.",has_counteroffer:false,expr_yes:"shock",expr_no:"smirk",is_trap:true}
+  ];
+}
+
+// ============================================================
+// FLUJO PRINCIPAL
+// ============================================================
+function selectPlayer(pid) {
+  currentPlayer = PLAYERS[pid];
+  curQ=0; money=0; yesC=0; noC=0; streak=0; streakType=null;
+  startJazz();
+  showScreen('s-game');
+  document.getElementById('speech-wrap').classList.remove('visible');
+  document.getElementById('audience-box').className='';
+  document.getElementById('streak-bar').className='';
+
+  const msgs = [`Buscando el precio de ${currentPlayer.name}...`,`Calibrando la oferta para ${currentPlayer.name}...`,`El negro consulta su dossier sobre ${currentPlayer.name}...`,`Preparando 30 preguntas incómodas para ${currentPlayer.name}...`];
+  setLoad(true, msgs[Math.floor(Math.random()*msgs.length)]);
+
+  // Si es la primera vez con este jugador, generar banco
+  // Si ya tiene banco, solo sacar nuevas preguntas
+  if (!bankReady || questionBank.length === 0) {
+    fetchQuestionBank().then(()=>{
+      roundQuestions = pickRoundQuestions();
+      setLoad(false);
+      loadQ();
+    });
+  } else {
+    // Nuevo juego con el mismo jugador — banco ya existe, solo pick nuevas
+    roundQuestions = pickRoundQuestions();
+    setLoad(false);
+    loadQ();
+  }
+}
+
+// ============================================================
+// EVENTOS
+// ============================================================
+document.getElementById('btn-yes').addEventListener('click', ()=>answer(true));
+document.getElementById('btn-no').addEventListener('click', ()=>answer(false));
+document.getElementById('btn-co-yes').addEventListener('click', ()=>{
+  document.getElementById('co-box').className='';
+  answer(true, true, curQuestion.counteroffer_amount||0);
+});
+document.getElementById('btn-co-no').addEventListener('click', ()=>{
+  document.getElementById('co-box').className=''; noC++;
+  setExpr('smirk'); sfxReject();
+  const r=['Dos noes. El negro anota. El precio sube la próxima vez.',`«Dos rechazos. Vale, pero que no se entere todo el camping.»`,'El negro cierra el maletín. Despacio. Sin apartar la mirada.'];
+  const txt = r[Math.floor(Math.random()*r.length)];
+  showSpeech(txt, ()=>{
+    maybeAudience(curQuestion.question, 'rechazó dos veces', txt,
+      document.getElementById('audience-comments'),
+      document.getElementById('audience-box'));
+    document.getElementById('btn-next').className='show';
+  });
+});
+document.getElementById('btn-next').addEventListener('click', ()=>{
+  curQ++;
+  if(curQ>=TOTAL) showResult(); else loadQ();
+});
+document.getElementById('btn-restart').addEventListener('click', ()=>{
+  curQ=0; money=0; yesC=0; noC=0; streak=0; streakType=null;
+  stopJazz();
+  document.getElementById('streak-bar').className='';
+  document.getElementById('res-aud-wrap').style.display='none';
+  showScreen('s-intro');
+  // Resetear banco para nuevo jugador
+  bankReady=false; questionBank=[];
+});
+document.getElementById('sound-btn').addEventListener('click', ()=>{
+  soundEnabled=!soundEnabled;
+  document.getElementById('sound-btn').textContent=soundEnabled?'🔊 SFX':'🔇 SFX';
+  if(!soundEnabled) stopJazz(); else if(currentPlayer) startJazz();
+});
+document.body.addEventListener('click', ()=>{
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+}, {once:true});
+
+buildGrid();
+showScreen('s-intro');
+</script>
+</body>
+</html>
