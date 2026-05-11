@@ -1138,15 +1138,17 @@ function getStaticComments(playerIds, accepted, amount, isFinal=false) {
 // ============================================================
 function maybeAudience(qText, playerAnswer, feedbackText, container, boxEl) {
   if (!currentPlayer.audience.length) return;
-  if (Math.random() > 0.42) return;
+  if (Math.random() > 0.65) return;  // 65% de probabilidad
   const accepted = playerAnswer.includes('aceptó');
   const amount = curQuestion ? curQuestion.amount : 0;
   const shuffled = [...currentPlayer.audience].sort(()=>Math.random()-0.5);
-  const count = Math.random()<0.35?1:Math.random()<0.65?2:3;
+  const count = Math.random()<0.3?1:Math.random()<0.6?2:3;
   const chosen = shuffled.slice(0,count);
   const comments = getStaticComments(chosen, accepted, amount);
   if (!comments.length) return;
-  document.getElementById('audience-header').style.display='flex';
+  // Mostrar header y caja
+  const header = document.getElementById('audience-header');
+  if (header) header.style.display = 'flex';
   renderWaBubbles(comments, container);
   boxEl.className = 'show';
 }
@@ -1176,7 +1178,7 @@ function loadQ() {
   document.getElementById('prog-fill').style.width = ((curQ/TOTAL)*100)+'%';
   document.getElementById('prog-txt').textContent = (curQ+1)+'/'+TOTAL;
   // Audiencia al lanzar (25%)
-  if (Math.random()<0.25 && currentPlayer.audience.length) {
+  if (Math.random()<0.35 && currentPlayer.audience.length) {
     setTimeout(()=>maybeAudience(curQuestion.question,'está pensando','',document.getElementById('audience-comments'),document.getElementById('audience-box')), 1400);
   }
 }
