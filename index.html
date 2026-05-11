@@ -880,50 +880,275 @@ function pickRoundQuestions() {
 }
 
 // ============================================================
-// AUDIENCIA — comentarios independientes WhatsApp
+// BANCO DE FRASES ESTÁTICAS — sin API, sin key
 // ============================================================
-async function maybeAudience(qText, playerAnswer, feedbackText, container, boxEl) {
+const FRASES = {
+  alan: {
+    yes: [
+      "Cada uno sabe hasta dónde puede llegar.",
+      "No te juzgo. Todos tenemos un precio.",
+      "A veces la decisión correcta no es la más cómoda.",
+      "Respeto la honestidad de aceptarlo.",
+      "El dinero no da la felicidad, pero ayuda.",
+      "Por menos han hecho cosas peores.",
+      "Igual yo lo hubiera pensado también.",
+      "Lo importante es ser honesto con uno mismo.",
+      "Hay que sobrevivir. No hay más.",
+      "Al menos es consecuente con lo que dice.",
+      "Nadie está libre de tentaciones.",
+      "A veces hay que hacer lo que hay que hacer.",
+    ],
+    no: [
+      "Hay cosas que no tienen precio. Bien hecho.",
+      "Eso dice mucho de ti.",
+      "No todo el mundo lo habría rechazado.",
+      "Hay límites que merece la pena mantener.",
+      "A veces decir no es lo más difícil.",
+      "El dinero no lo es todo. Por suerte.",
+      "Me alegra que haya gente así todavía.",
+      "Bien. Algunos principios no se venden.",
+      "Eso te honra.",
+      "No me sorprende. Eres de los que tienen criterio.",
+      "Hay que saber decir que no.",
+      "La dignidad tiene valor aunque no tenga precio.",
+    ],
+    high: [
+      "Con esa cantidad yo también lo pensaría seriamente.",
+      "El negro no juega, eso es mucho dinero.",
+      "Hay que ser muy valiente para rechazar eso.",
+      "O muy tonto. Depende del día.",
+    ],
+    final_yes: [
+      "Al final todos encontramos nuestro precio.",
+      "No te preocupes, todos hubiéramos hecho lo mismo.",
+      "El dinero mueve el mundo. Esta noche lo ha demostrado.",
+      "No hay que avergonzarse. Es pragmatismo.",
+      "Lo importante es lo que haces con ese dinero después.",
+    ],
+    final_no: [
+      "Íntegro hasta el final. Eso se respeta.",
+      "Poca gente aguanta tanto. En serio.",
+      "El negro hoy no ha podido contigo.",
+      "Hay que tener carácter para esto.",
+      "Orgulloso. Aunque seguro que dudaste en alguna.",
+    ],
+    final_mixed: [
+      "Ni tan corrupto ni tan santo. Normal.",
+      "Un equilibrio bastante razonable.",
+      "Selectivo con los principios. Como todos.",
+      "Hay coherencia ahí dentro. La justa.",
+      "Al final somos lo que hacemos, no lo que decimos.",
+    ]
+  },
+  sergi: {
+    yes: [
+      "Yo nunca habría aceptado eso. Jamás.",
+      "Hay cosas que no se hacen por dinero. O sea.",
+      "Con lo que yo he aguantado en el monte, esto es de risa.",
+      "Menos mal que yo tengo principios.",
+      "Eso es lo que separa a la gente seria del resto.",
+      "Yo lo tenía clarísimo desde el principio.",
+      "Esto en el monte no se haría. Punto.",
+      "Hay que tener más criterio, en serio.",
+      "Un hombre de verdad no hace eso.",
+      "Yo lo habría rechazado sin pensarlo.",
+      "Con mi navaja y mi petaca me sobra dignidad.",
+      "Esto es lo que pasa cuando no tienes disciplina.",
+      "En la montaña te curtirías. Claramente.",
+      "Poca vergüenza hay que tener.",
+    ],
+    no: [
+      "Bien, eso sí que tiene sentido.",
+      "Por fin alguien que piensa como yo.",
+      "Yo también lo habría rechazado. Claro.",
+      "Eso es tener criterio. Como yo.",
+      "Normal, yo lo mismo. Sin dudarlo.",
+      "Ahí está la diferencia entre gente seria y el resto.",
+      "Me alegra ver que alguien más tiene principios.",
+      "Eso es lo que hay que hacer. Así se hace.",
+      "Bien hecho. Como haría cualquier persona con cabeza.",
+      "Yo llevo años haciendo lo correcto. Bienvenido al club.",
+    ],
+    high: [
+      "Vale, eso ya es mucho dinero. Igual lo pensaba.",
+      "Con esa pasta igual me lo planteo yo también. Igual.",
+      "Bueno... con ese dinero ya es otra historia.",
+      "Nadie diría que no a eso. Bueno, yo quizás sí.",
+    ],
+    final_yes: [
+      "Pues yo no lo habría hecho. Para que conste.",
+      "Menos mal que yo tengo más criterio.",
+      "La gente cada vez tiene menos principios. En fin.",
+      "Yo en su lugar habría aguantado más. Con diferencia.",
+      "Eso no lo haría ni por el doble. Digo yo.",
+    ],
+    final_no: [
+      "Bien. Eso es lo que hay que hacer.",
+      "Eso se llama tener carácter. Como yo.",
+      "Pocas personas aguantarían tanto. Yo soy una de ellas.",
+      "Respeto. Aunque yo habría aguantado más todavía.",
+      "Así se hace. Con cabeza y con principios.",
+    ],
+    final_mixed: [
+      "Mitad bien mitad regular. Podría haberlo hecho mejor.",
+      "Hay que ser más consistente. O todo o nada.",
+      "Yo habría sido más claro en mis decisiones.",
+      "Un poco de todo. Sin mucha convicción.",
+      "Hay que definirse. O tienes principios o no los tienes.",
+    ]
+  },
+  alba: {
+    yes: [
+      "Aaay no, yo eso no lo haría ni loca 😭",
+      "Bueno... por esa cantidad igual sí jeje",
+      "Madre mía, qué fuerte 😂",
+      "Pues yo lo entiendo, la verdad",
+      "Nooo, con lo que me costaaaría a mí 😩",
+      "Oye, que el dinero es el dinero",
+      "Geralt nunca haría algo así, por eso me gusta él 😌",
+      "Yo también lo haría, no voy a mentir",
+      "Qué vergüenzaaa pero qué bien pagado jajaja",
+      "Aaay pobrecito/a, con lo que habrá sufrido para decidir",
+      "Vamos, que todos tenemos un precio",
+      "Igual en Jujutsu Kaisen hay misiones peores que esta 😂",
+      "Yo lo entiendo completamente, no me parece mal",
+      "Con ese dinero me compraba ropa nueva por fin",
+    ],
+    no: [
+      "Bien hecho!! Yo tampoco lo haría 🙌",
+      "Aaay qué valiente, yo no sé si podría",
+      "Normal, hay cosas que no se hacen",
+      "Yo tampoco lo haría... creo 😬",
+      "Eso tiene mucho mérito en serio",
+      "Menos mal que alguien tiene dignidad aquí",
+      "Yo igual cedía antes jajaja, no te voy a engañar",
+      "Geralt tampoco lo haría. Tiene honor 😌",
+      "En el anime los protagonistas siempre hacen lo correcto. Aprendemos.",
+      "Aaay me alegra tanto que no lo haya hecho",
+      "Qué fuerte tener esa fuerza de voluntad",
+      "Yo lo habría pensado mucho más antes de rechazarlo",
+    ],
+    high: [
+      "Eso ya es mucho dinero, no voy a mentir 😳",
+      "Por esa cantidad yo igual me lo pensabaaaa",
+      "Madre mía, con eso me iba al extranjero por fin",
+      "Aaay que cantidad más grande dios mío",
+    ],
+    final_yes: [
+      "Bueno, tampoco es para tanto jajaja",
+      "Oye que el dinero no cae del cielo, bien hecho",
+      "Yo también lo habría hecho, no me juzguéis",
+      "Aaay pobrecito/a, qué presión habrá pasado 😭",
+      "En Jujutsu Kaisen por menos se han vendido al lado oscuro 😂",
+    ],
+    final_no: [
+      "Aaay qué fuerte, yo no habría aguantado tanto 😭",
+      "Eso sí que tiene mérito, en serio",
+      "Yo en la primera pregunta difícil ya cedía jajaja",
+      "Qué fuerza de voluntad, por favorrrr",
+      "Geralt de Rivia también tiene honor. Sois iguales 😌",
+    ],
+    final_mixed: [
+      "Mitad y mitad, como yo en mis decisiones jajaja",
+      "Oye, tampoco está mal para lo que era",
+      "Yo habría hecho lo mismo más o menos",
+      "Normal, hay cosas que sí y cosas que no",
+      "Igual que yo cuando tengo que elegir entre comer sano o no 😂",
+    ]
+  },
+  edu: {
+    yes: [
+      "Eso lo habría hecho yo también, sats o no sats",
+      "Bueeeeno, si hay pasta por medio se entiendeude",
+      "Yo lo mismo tío, no hay más vuelta de hoja",
+      "Correcto. El dinero manda.",
+      "Seh... yo también lo habría aceptado, no voy a mentir",
+      "Pues lógico, ¿no? Con esa pasta cualquiera",
+      "Yo lo habría acepteude sin pensarlo dos veces",
+      "Sats o no sats, eso está claro que sí",
+      "Bieeen, que haya alguien con sentido común aquí",
+      "Yo lo mismo, sin drama",
+      "Normal, eso lo hace cualquiera",
+      "Lógico lógico. El dinero es el dinero.",
+    ],
+    no: [
+      "Sats o no sats, eso yo no lo haría tampoco",
+      "Hay cosas que no se hacen, tío",
+      "Correcto. Hay límites.",
+      "Seh, no... yo tampoco lo haría",
+      "Bien rechazaude, que conste",
+      "Eso tiene lógica, hay cosas que no",
+      "Yo tampoco, para que quede claro",
+      "Normal, eso es demasiado",
+      "Bien hecho tío, en serio",
+      "Ahí está. Hay que tener cabeza.",
+      "Yo lo mismo. A veces el no es el no.",
+      "Sats o no sats, eso estaba claro que no",
+    ],
+    high: [
+      "Sats o no sats, eso es mucho dinero",
+      "Con esa pasta yo me comprabareude una batería buena",
+      "Eso ya es otro nivel tío",
+      "Bueeeeno, ahí ya cambia la cosa",
+    ],
+    final_yes: [
+      "Ha estadeude bien, no me parece mal",
+      "Sats o no sats, ha sacado pasta",
+      "Lógico lógico. Así se hace.",
+      "Bien jugaude, sin más",
+      "Yo lo mismo habría hecho, con diferencia",
+    ],
+    final_no: [
+      "Eso sí que tiene mérito tío, en serio",
+      "Sats o no sats, ha aguantado mucho",
+      "Ha resisteude bastante, hay que reconocerlo",
+      "Yo no habría aguantado ni la mitad jajaja",
+      "Respeto total, sin más",
+    ],
+    final_mixed: [
+      "Mitad sí mitad no, sats o no sats",
+      "Normal, así está bien también",
+      "Ni tan bien ni tan mal, para qué mentir",
+      "Ha estadeude en el término medio, correcto",
+      "Seh, no... tampoco está tan mal",
+    ]
+  }
+};
+
+function getStaticComments(playerIds, accepted, amount, isFinal=false) {
+  const isHigh = amount >= 10000;
+  return playerIds.map(pid => {
+    const f = FRASES[pid]; if(!f) return null;
+    let pool;
+    if (isFinal) {
+      if (yesC > noC) pool = f.final_yes;
+      else if (noC > yesC) pool = f.final_no;
+      else pool = f.final_mixed;
+    } else {
+      if (isHigh && Math.random()<0.4) pool = f.high;
+      else pool = accepted ? f.yes : f.no;
+    }
+    const comment = pool[Math.floor(Math.random()*pool.length)];
+    return { playerId: pid, comment };
+  }).filter(Boolean);
+}
+
+// ============================================================
+// AUDIENCIA — comentarios estáticos WhatsApp
+// ============================================================
+function maybeAudience(qText, playerAnswer, feedbackText, container, boxEl) {
   if (!currentPlayer.audience.length) return;
   if (Math.random() > 0.42) return;
-
+  const accepted = playerAnswer.includes('aceptó');
+  const amount = curQuestion ? curQuestion.amount : 0;
   const shuffled = [...currentPlayer.audience].sort(()=>Math.random()-0.5);
   const count = Math.random()<0.35?1:Math.random()<0.65?2:3;
   const chosen = shuffled.slice(0,count);
-
-  try {
-    const profiles = chosen.map(pid=>`${PLAYERS[pid].name} (id:${pid}): ${PLAYERS[pid].profile.split('.').slice(0,3).join('.')}`).join('\n');
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 600,
-        system: `Genera comentarios independientes de WhatsApp del grupo de amigos. CADA UNO comenta por su cuenta, sin responder a los demás.
-
-Personas que comentan: ${profiles}
-
-REGLAS:
-- Comentarios cortos (8-14 palabras), naturales, estilo WhatsApp real
-- Cada comentario es independiente, no hace referencia al mensaje de otro
-- Pueden hacer guiños entre ellos de forma indirecta ("yo nunca haría eso... bueno, quizás por esa cantidad")
-- Edu: el 40% de las veces usa "sats o no sats" (no siempre). El 20% de las veces usa UN verbo con terminación -eude fusionada directamente (ejemplos correctos: "salteude", "hablaréude", "bailaréude", "cantaréude" — NUNCA "salta -eude" ni separado). El resto del tiempo comenta normal o hace un chiste. Si le pillan en algo: "seh, no"
-- Sergi: intenta parecer superior o más macho que el jugador
-- Alba: el 20% de las veces hace una referencia breve a Jujutsu Kaisen u otro anime. El resto: voz de ardilla cuando pide, drama, o comentario normal envidiosa
-- Alan: frase breve sabia o defensa del jugador
-- NO menciones secretos comprometedores directamente
-- Pueden hacer referencia suave a rasgos del jugador — guiños solo, no datos directos
-
-JSON: [{"playerId":"alan|sergi|alba|edu","comment":"texto"}]`,
-        messages: [{role:'user', content:`${currentPlayer.name} ${playerAnswer}. Pregunta: "${qText.substring(0,100)}". Negro: "${feedbackText.substring(0,80)}"`}]
-      })
-    });
-    const d = await r.json();
-    const comments = JSON.parse(d.content[0].text.trim().replace(/```json|```/g,'').trim());
-    if (!comments || !comments.length) return;
-    document.getElementById('audience-header').style.display='flex';
-    renderWaBubbles(comments, container);
-    boxEl.className = 'show';
-  } catch(e) {}
+  const comments = getStaticComments(chosen, accepted, amount);
+  if (!comments.length) return;
+  document.getElementById('audience-header').style.display='flex';
+  renderWaBubbles(comments, container);
+  boxEl.className = 'show';
 }
 
 // ============================================================
@@ -1031,7 +1256,8 @@ async function showResult() {
   const cat = MORAL_CATS.find(c=>money>=c.min&&money<=c.max)||MORAL_CATS[0];
   document.getElementById('res-moral-cat').textContent = `${cat.label} — ${cat.desc}`;
   setLoad(true, 'El negro redacta su veredicto...');
-  const [fortune, finalComments] = await Promise.all([fetchFortune(), fetchFinalComments()]);
+  const fortune = await fetchFortune();
+  const finalComments = fetchFinalComments();
   setLoad(false);
   document.getElementById('res-fortune').textContent = fortune;
   if (finalComments && finalComments.length) {
@@ -1064,33 +1290,12 @@ Perfil de referencia (solo para el tono, no para datos): ${currentPlayer.profile
   } catch(e) { return `Todo tiene precio. Esta noche lo demostraste.`; }
 }
 
-async function fetchFinalComments() {
+function fetchFinalComments() {
   if (!currentPlayer.audience.length) return [];
-  try {
-    const profiles = currentPlayer.audience.map(pid=>`${PLAYERS[pid].name} (id:${pid}): ${PLAYERS[pid].profile.split('.').slice(0,2).join('.')}`).join('\n');
-    const r = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:600,
-        system:`Comentarios finales independientes del grupo de WhatsApp sobre el resultado de ${currentPlayer.name}.
-Personas: ${profiles}
-
-REGLAS:
-- Comentarios independientes, cada uno por su cuenta (no se responden entre ellos)
-- Cortos (8-15 palabras), en la voz exacta de cada uno
-- Pueden hacer guiños al carácter del jugador sin datos comprometedores directos
-- IMPORTANTE: Solo comentan las personas listadas arriba. ${currentPlayer.name} NO comenta su propia partida
-- Edu: el 40% de las veces usa "sats o no sats". El 20% usa UN verbo con -eude fusionado directamente (ejemplos: "salteude", "hablaréude", "bailaréude" — NUNCA separado como "salta -eude"). El resto: comentario normal o chiste
-- Sergi: intenta quedar por encima o parecer más íntegro
-- Alba: el 20% de las veces referencia breve a Jujutsu Kaisen u otro anime. El resto: ardilla envidiosa o comentario normal
-- Alan: reflexión breve y filosófica
-JSON: [{"playerId":"alan|sergi|alba|edu","comment":"texto"}]`,
-        messages:[{role:'user', content:`${currentPlayer.name}: ${money}€, ${yesC} síes, ${noC} noes.`}]
-      })
-    });
-    const d = await r.json();
-    return JSON.parse(d.content[0].text.trim().replace(/```json|```/g,'').trim());
-  } catch(e) { return []; }
+  const shuffled = [...currentPlayer.audience].sort(()=>Math.random()-0.5);
+  const count = Math.random()<0.3?2:3;
+  const chosen = shuffled.slice(0,count);
+  return getStaticComments(chosen, yesC >= noC, money, true);
 }
 
 // ============================================================
