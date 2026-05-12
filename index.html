@@ -1746,7 +1746,12 @@ function planRoundSurprises() {
     if (pos === undefined) pos = positions.find(p => !used.includes(p));
     if (pos === undefined) continue;
     used.push(pos);
-    if (s==='maldita') malditaQ = pos;
+    if (s==='maldita') {
+      // Never on first 3 questions (positions 0,1,2) - minimum question 4
+      let malditaPos = positions.find(p => !used.includes(p) && !used.some(u=>Math.abs(u-p)<=1) && p >= 3);
+      if (malditaPos === undefined) malditaPos = positions.find(p => !used.includes(p) && p >= 3);
+      if (malditaPos !== undefined) { malditaQ = malditaPos; used.push(malditaPos); } continue;
+    }
     else if (s==='espia') espiaQ = pos;
     else if (s==='ocurrencia') { ocurrenciaQs.push(pos); if(Math.random()<0.4){ let pos2=positions.find(p=>!used.includes(p)&&!used.some(u=>Math.abs(u-p)<=1)); if(pos2!==undefined){used.push(pos2);ocurrenciaQs.push(pos2);}} }
     else if (s==='miente' && !negroMiente_done) negroMienteQ = pos;
