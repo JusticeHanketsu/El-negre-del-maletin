@@ -211,9 +211,9 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
 @keyframes moneyDown{from{transform:translateY(-15px) scale(1.3);color:#00FF88;}to{transform:translateY(0) scale(1);color:#FF4444;}}
 #money-display{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--gold);text-align:center;min-height:1.5rem;margin-bottom:0.3rem;transition:all 0.5s;}
 
-#btn-restart-float{position:fixed;bottom:1.5rem;right:1.5rem;z-index:500;width:56px;height:56px;border-radius:50%;background:var(--bg);border:2px solid var(--gold);color:var(--gold);font-size:1.4rem;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.8);transition:all 0.2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
-#btn-restart-float.show{display:flex;}
-#btn-restart-float:hover{background:rgba(201,168,76,0.15);transform:scale(1.08);}
+
+#btn-restart{padding:0.9rem 2.5rem;background:transparent;border:1px solid var(--gold-d);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;margin-top:0.5rem;}
+#btn-restart:hover{border-color:var(--gold);background:rgba(201,168,76,0.05);}
 #sound-btn{position:fixed;top:0.85rem;right:0.85rem;z-index:100;background:rgba(7,7,6,0.88);border:1px solid var(--gold-d);color:var(--text-d);padding:0.35rem 0.6rem;font-size:0.65rem;letter-spacing:0.15em;cursor:pointer;transition:all 0.18s;font-family:'Cormorant Garamond',serif;backdrop-filter:blur(6px);}
 #sound-btn:hover{border-color:var(--gold);color:var(--gold);}
 .coin{position:fixed;pointer-events:none;z-index:200;font-size:1.4rem;animation:coinfall 1.3s ease forwards;}
@@ -222,7 +222,6 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
 </head>
 <body>
 <button id="sound-btn">🔊 SFX</button>
-<button id="btn-restart-float" title="Jugar de nuevo">🔄</button>
 
 <canvas id="bg-canvas"></canvas>
 <div id="load-ov"><div class="spin"></div><p id="load-msg">Calibrando tu precio...</p></div>
@@ -536,6 +535,7 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
       <div id="archivo-entries"></div>
       <button id="lore-reset-btn">↺ Resetear progreso del archivo</button>
     </div>
+    <button id="btn-restart">Jugar de nuevo</button>
 
   </div>
 </div>
@@ -747,7 +747,7 @@ function acSpeak(text, callback) {
       n(AC_FREQS[i % AC_FREQS.length], 'sine', .055, .035);
     }
     i++;
-    const d = '.!?'.includes(chars[i-1]) ? 260 : chars[i-1]===','?140 : 40+Math.random()*18;
+    const d = '.!?'.includes(chars[i-1]) ? 200 : chars[i-1]===','?100 : 22+Math.random()*10;
     acTimer = setTimeout(typeChar, d);
   }
   typeChar();
@@ -1476,20 +1476,37 @@ function getVeredicto(pid) {
   return v[Math.floor(Math.random()*v.length)]; // aleatorio si no encaja
 }
 
+// Baraja system: track used indices per player per pool
+const FRASES_USED = {};
+function getFromPool(pid, poolName, pool) {
+  const key = pid + '_' + poolName;
+  if (!FRASES_USED[key]) FRASES_USED[key] = [];
+  let available = pool.map((_,i)=>i).filter(i => !FRASES_USED[key].includes(i));
+  // If all used, reset (reshuffle)
+  if (available.length === 0) {
+    FRASES_USED[key] = [];
+    available = pool.map((_,i)=>i);
+  }
+  const idx = available[Math.floor(Math.random()*available.length)];
+  FRASES_USED[key].push(idx);
+  return pool[idx];
+}
+
 function getStaticComments(playerIds, accepted, amount, isFinal=false) {
   const isHigh = amount >= 5000;
   return playerIds.map(pid => {
     const f = FRASES[pid]; if(!f) return null;
-    let pool;
+    let pool, poolName;
     if (isFinal) {
-      if (yesC > noC) pool = f.final_yes;
-      else if (noC > yesC) pool = f.final_no;
-      else pool = f.final_mixed;
+      if (yesC > noC) { pool = f.final_yes; poolName = 'final_yes'; }
+      else if (noC > yesC) { pool = f.final_no; poolName = 'final_no'; }
+      else { pool = f.final_mixed; poolName = 'final_mixed'; }
     } else {
-      if (isHigh && Math.random()<0.4) pool = f.high;
-      else pool = accepted ? f.yes : f.no;
+      if (isHigh && Math.random()<0.4) { pool = f.high; poolName = 'high'; }
+      else if (accepted) { pool = f.yes; poolName = 'yes'; }
+      else { pool = f.no; poolName = 'no'; }
     }
-    const comment = pool[Math.floor(Math.random()*pool.length)];
+    const comment = getFromPool(pid, poolName, pool);
     return { playerId: pid, comment };
   }).filter(Boolean);
 }
@@ -1628,7 +1645,7 @@ let negroContradicho = false;       // 1 vez por partida
 let negroLlamo = false;             // 1 vez por partida
 let negroAdmirado = false;          // si ya pasó
 let negroEnhorabuena = false;       // 1 vez por partida
-let lastAcceptedAmount = 0;         // para detectar incoherencia
+let lastRejectedAmount = 0;         // para detectar incoherencia
 let lastAcceptedQ = null;
 let deudaMoral = false;             // si hay deuda moral pendiente
 let impacienciaTimer = null;        // timer de impaciencia
@@ -1901,7 +1918,7 @@ function loadQ() {
             startImpaciencia();
           }
         };
-        document.getElementById('btn-oc-nueva').onclick = ()=>{ clearImpaciencia(); document.getElementById('ocurrencia-box').className=''; if(oc.amount>0){money+=oc.amount; updateMoneyCounter('up');} yesC++; setExpr('laugh'); sfxAccept(); if(oc.amount>0)spawnCoins(); showSpeech(oc.feedback_si, ()=>{ maybeAudience(curQuestion.question,'aceptó la ocurrencia del negro',oc.feedback_si,document.getElementById('audience-comments'),document.getElementById('audience-box')); document.getElementById('btn-next').className='show'; }); };
+        document.getElementById('btn-oc-nueva').onclick = ()=>{ clearImpaciencia(); document.getElementById('ocurrencia-box').className=''; if(oc.amount>0){money+=oc.amount; updateMoneyCounter('up');} consecutiveYes++; consecutiveNo=0; setExpr('laugh'); sfxAccept(); if(oc.amount>0)spawnCoins(); showSpeech(oc.feedback_si, ()=>{ maybeAudience(curQuestion.question,'aceptó la ocurrencia del negro',oc.feedback_si,document.getElementById('audience-comments'),document.getElementById('audience-box')); document.getElementById('btn-next').className='show'; }); };
         document.getElementById('btn-oc-ninguna').onclick = ()=>{ clearImpaciencia(); document.getElementById('ocurrencia-box').className=''; noC++; setExpr('despise'); sfxReject(); negroOfendido=2; showSpeech('Has rechazado MI propuesta. No la del maletín. La mía. El negro no lo olvidará pronto.', ()=>{ maybeAudience(curQuestion.question,'rechazó la ocurrencia del negro','',document.getElementById('audience-comments'),document.getElementById('audience-box')); document.getElementById('btn-next').className='show'; }); };
         sfxCounter();
       });
@@ -1942,7 +1959,7 @@ function answer(accepted, isCounter=false, counterAmt=0) {
 
   if (accepted) {
     const earned = amount;
-    yesC++; consecutiveYes++; consecutiveNo=0;
+    if (!isCounter) yesC++; consecutiveYes++; consecutiveNo=0;
     updateStreak('yes');
 
     // Detección alternancia caótica
@@ -2029,17 +2046,19 @@ function answer(accepted, isCounter=false, counterAmt=0) {
       feedbackText=mc;
     }
 
-    // Incoherencia: aceptó algo más barato que lo que rechazó antes
-    if (lastAcceptedQ && lastAcceptedAmount>0 && amount<lastAcceptedAmount && noC>0) {
-      feedbackText=`Rechazaste ${fmtMoney(lastAcceptedAmount)} en su momento. Acabas de aceptar ${fmtMoney(amount)} por algo peor. El negro no juzga. El negro anota. Y se ríe por dentro.`;
+    // Incoherencia: solo si rechazó algo caro ANTES y ahora acepta algo más barato
+    // Condiciones estrictas: lastAcceptedAmount es lo que RECHAZÓ, amount es lo que acepta ahora
+    if (lastRejectedAmount>0 && amount < lastRejectedAmount*0.5 && !isCounter) {
+      feedbackText=`Rechazaste ${fmtMoney(lastRejectedAmount)} antes. Y ahora aceptas ${fmtMoney(amount)} por algo peor. El negro no juzga. El negro anota. Y se ríe por dentro.`;
     }
-    lastAcceptedAmount=amount; lastAcceptedQ=curQuestion;
+    lastAcceptedQ=curQuestion;
 
   } else {
-    noC++; consecutiveNo++; consecutiveYes=0;
+    if (!isCounter) noC++; consecutiveNo++; consecutiveYes=0;
     updateStreak('no');
     if (lastAnswer==='yes') altPatternCount++; else altPatternCount=0;
     lastAnswer='no';
+    if (!isCounter) lastRejectedAmount = amount; // track what was rejected
 
     setExpr(curQuestion.expr_no||'judge'); sfxReject();
     feedbackText = negroOfendido>0
@@ -2161,7 +2180,6 @@ function showSpeech(text, cb) {
 // RESULTADO
 // ============================================================
 function showResult() {
-  document.getElementById('btn-restart-float').className='show';
   // Make sure lore overlay is hidden
   const loreEl = document.getElementById('lore-interrupt');
   if(loreEl) loreEl.className = '';
@@ -2518,7 +2536,7 @@ function loreSpeakParagraphs(paragraphs, onDone) {
         n(AC_FREQS[cIdx%AC_FREQS.length],'sine',.055,.03);
       }
       cIdx++;
-      const d = '.!?'.includes(para[cIdx-1])?220:para[cIdx-1]===','?100:28+Math.random()*12;
+      const d = '.!?'.includes(para[cIdx-1])?180:para[cIdx-1]===','?80:20+Math.random()*8;
       loreTimer = setTimeout(nextChar, d);
     } else {
       pIdx++; cIdx=0;
@@ -2635,7 +2653,7 @@ function selectPlayer(pid) {
   negroMiente_used=false; negroMiente_done=false; negrocambia_used=false;
   negroOfendido=0; negroRoto=false; negroContradicho=false; negroLlamo=false;
   negroAdmirado=false; negroEnhorabuena=false;
-  lastAcceptedAmount=0; lastAcceptedQ=null; deudaMoral=false;
+  lastRejectedAmount=0; lastAcceptedQ=null; deudaMoral=false;
   consecutiveNo=0; consecutiveYes=0; altPatternCount=0; lastAnswer=null;
   clearImpaciencia();
   startJazz();
@@ -2711,16 +2729,14 @@ document.body.addEventListener('click', ()=>{
 buildGrid();
 showScreen('s-intro');
 
-// Floating restart button
-document.getElementById('btn-restart-float').addEventListener('click', function() {
-  this.className = '';
+document.getElementById('btn-restart').addEventListener('click', function() {
   var loreEl = document.getElementById('lore-interrupt');
   if (loreEl) loreEl.className = '';
   curQ=0; money=0; yesC=0; noC=0; streak=0; streakType=null;
   negroMiente_used=false; negroMiente_done=false; negrocambia_used=false;
   negroOfendido=0; negroRoto=false; negroContradicho=false; negroLlamo=false;
   negroAdmirado=false; negroEnhorabuena=false;
-  lastAcceptedAmount=0; lastAcceptedQ=null; deudaMoral=false;
+  lastRejectedAmount=0; lastAcceptedQ=null; deudaMoral=false;
   consecutiveNo=0; consecutiveYes=0; altPatternCount=0; lastAnswer=null;
   clearImpaciencia();
   stopJazz();
