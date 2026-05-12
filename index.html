@@ -137,7 +137,7 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
 #res-aud-hdr span{font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:700;color:var(--gold);}
 #res-aud-comments{display:flex;flex-direction:column;gap:0.5rem;}
 #btn-restart{padding:1rem 2.5rem;background:rgba(201,168,76,0.08);border:1px solid var(--gold);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;width:100%;max-width:340px;margin-top:1rem;min-height:56px;position:relative;z-index:50;pointer-events:auto;}
-#btn-restart:hover{border-color:var(--gold);background:rgba(201,168,76,0.05);}
+
 
 /* LORE SYSTEM */
 #lore-interrupt{display:none;position:fixed;inset:0;background:rgba(7,7,6,0.96);z-index:400;align-items:flex-start;justify-content:center;flex-direction:column;padding:1.5rem;overflow-y:auto;-webkit-overflow-scrolling:touch;pointer-events:none;}
@@ -532,7 +532,7 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
       <div id="archivo-entries"></div>
       <button id="lore-reset-btn">↺ Resetear progreso del archivo</button>
     </div>
-    <button id="btn-restart">Jugar de nuevo</button>
+    <div id="restart-container" style="width:100%;max-width:340px;margin-top:1rem;"></div>
   </div>
 </div>
 
@@ -2692,27 +2692,7 @@ document.getElementById('btn-next').onclick = function() {
   curQ++;
   if(curQ>=TOTAL) showResult(); else loadQ();
 };
-document.getElementById('btn-restart').addEventListener('click', ()=>{
-  const loreEl2 = document.getElementById('lore-interrupt');
-  if(loreEl2) loreEl2.className = '';
-  if(loreTimer) clearTimeout(loreTimer);
-  curQ=0; money=0; yesC=0; noC=0; streak=0; streakType=null;
-  negroMiente_used=false; negroMiente_done=false; negrocambia_used=false;
-  negroOfendido=0; negroRoto=false; negroContradicho=false; negroLlamo=false;
-  negroAdmirado=false; negroEnhorabuena=false;
-  lastAcceptedAmount=0; lastAcceptedQ=null; deudaMoral=false;
-  consecutiveNo=0; consecutiveYes=0; altPatternCount=0; lastAnswer=null;
-  clearImpaciencia();
-  stopJazz();
-  document.getElementById('streak-bar').className='';
-  document.getElementById('res-aud-wrap').style.display='none';
-  showScreen('s-intro');
-  const mc2 = document.getElementById('char-money-wrap');
-  if(mc2) mc2.className='';
-  const aw = document.getElementById('archivo-wrap');
-  if(aw) aw.className='';
-  bankReady=false; questionBank=[];
-});
+
 document.getElementById('sound-btn').addEventListener('click', ()=>{
   soundEnabled=!soundEnabled;
   document.getElementById('sound-btn').textContent=soundEnabled?'🔊 SFX':'🔇 SFX';
@@ -2725,6 +2705,56 @@ document.body.addEventListener('click', ()=>{
 
 buildGrid();
 showScreen('s-intro');
+
+// ============================================================
+// BOTON JUGAR DE NUEVO — creado desde JS
+// ============================================================
+(function() {
+  var container = document.getElementById('restart-container');
+  if (!container) return;
+
+  var btn = document.createElement('button');
+  btn.textContent = 'Jugar de nuevo';
+  btn.style.cssText = [
+    'display:block',
+    'width:100%',
+    'padding:0.9rem 1rem',
+    'background:transparent',
+    'border:1px solid #7A6130',
+    'color:#C9A84C',
+    'font-family:Cormorant Garamond,serif',
+    'font-size:0.85rem',
+    'font-weight:700',
+    'letter-spacing:0.2em',
+    'text-transform:uppercase',
+    'cursor:pointer',
+  ].join(';');
+
+  function restart() {
+    var loreEl = document.getElementById('lore-interrupt');
+    if (loreEl) loreEl.className = '';
+    if (typeof loreTimer !== 'undefined' && loreTimer) clearTimeout(loreTimer);
+    curQ=0; money=0; yesC=0; noC=0; streak=0; streakType=null;
+    negroMiente_used=false; negroMiente_done=false; negrocambia_used=false;
+    negroOfendido=0; negroRoto=false; negroContradicho=false; negroLlamo=false;
+    negroAdmirado=false; negroEnhorabuena=false;
+    lastAcceptedAmount=0; lastAcceptedQ=null; deudaMoral=false;
+    consecutiveNo=0; consecutiveYes=0; altPatternCount=0; lastAnswer=null;
+    clearImpaciencia();
+    stopJazz();
+    var sb = document.getElementById('streak-bar');
+    if (sb) sb.className='';
+    showScreen('s-intro');
+    var mc = document.getElementById('char-money-wrap');
+    if (mc) mc.className='';
+    var aw = document.getElementById('archivo-wrap');
+    if (aw) aw.className='';
+    bankReady=false; questionBank=[];
+  }
+
+  btn.addEventListener('click', restart);
+  container.appendChild(btn);
+})();
 </script>
 </body>
 </html>
