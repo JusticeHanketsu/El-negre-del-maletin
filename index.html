@@ -161,8 +161,8 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
 .lore-entry-header{display:flex;justify-content:space-between;align-items:center;}
 .lore-entry-label{font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold-d);}
 .lore-entry-new{font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,0.15);padding:0.1rem 0.4rem;}
-.lore-entry-title{font-family:'Playfair Display',serif;font-size:0.9rem;color:var(--gold);margin-top:0.15rem;}
-.lore-entry-preview{font-size:0.95rem;color:var(--text-d);font-style:italic;margin-top:0.3rem;line-height:1.5;display:none;}
+.lore-entry-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--gold);margin-top:0.15rem;}
+.lore-entry-preview{font-size:1.05rem;color:var(--text-d);font-style:italic;margin-top:0.3rem;line-height:1.5;display:none;}
 .lore-entry.unlocked .lore-entry-preview{display:block;}
 .lore-entry.locked .lore-entry-title{color:var(--text-dd);}
 #lore-reset-btn{display:none;margin-top:0.75rem;width:100%;padding:0.4rem;background:transparent;border:1px solid var(--text-dd);color:var(--text-dd);font-family:'Cormorant Garamond',serif;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;opacity:0.4;transition:all 0.2s;}
@@ -1997,11 +1997,12 @@ function answer(accepted, isCounter=false, counterAmt=0) {
     if (!isCounter && Math.random()<0.20) {
       feedbackText = NEGRO_ACCEPT_EXTRA[Math.floor(Math.random()*NEGRO_ACCEPT_EXTRA.length)];
       setExpr('despise');
-    } else
+    } else {
     feedbackText = isCounter
       ? `Todo el mundo tiene un precio. El de ${currentPlayer.name} acaba de actualizarse a la baja.`
       : (negroOfendido>0 ? FRIO_FRASES[Math.floor(Math.random()*FRIO_FRASES.length)] : curQuestion.feedback_yes);
     if(curQuestion.is_trap) feedbackText=`Ooooh may good... Aceptó sin dudar. Fascinante. Eres una shet de persona.`;
+    }
     playerAnswerText=`aceptó ${fmtMoney(amount)}`;
 
     // Deuda moral (expr_yes=despise = vergonzoso)
