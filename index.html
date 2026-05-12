@@ -211,6 +211,9 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
 @keyframes moneyDown{from{transform:translateY(-15px) scale(1.3);color:#00FF88;}to{transform:translateY(0) scale(1);color:#FF4444;}}
 #money-display{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--gold);text-align:center;min-height:1.5rem;margin-bottom:0.3rem;transition:all 0.5s;}
 
+#btn-restart-float{position:fixed;bottom:1.5rem;right:1.5rem;z-index:500;width:56px;height:56px;border-radius:50%;background:var(--bg);border:2px solid var(--gold);color:var(--gold);font-size:1.4rem;cursor:pointer;display:none;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.8);transition:all 0.2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+#btn-restart-float.show{display:flex;}
+#btn-restart-float:hover{background:rgba(201,168,76,0.15);transform:scale(1.08);}
 #sound-btn{position:fixed;top:0.85rem;right:0.85rem;z-index:100;background:rgba(7,7,6,0.88);border:1px solid var(--gold-d);color:var(--text-d);padding:0.35rem 0.6rem;font-size:0.65rem;letter-spacing:0.15em;cursor:pointer;transition:all 0.18s;font-family:'Cormorant Garamond',serif;backdrop-filter:blur(6px);}
 #sound-btn:hover{border-color:var(--gold);color:var(--gold);}
 .coin{position:fixed;pointer-events:none;z-index:200;font-size:1.4rem;animation:coinfall 1.3s ease forwards;}
@@ -219,6 +222,7 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
 </head>
 <body>
 <button id="sound-btn">🔊 SFX</button>
+<button id="btn-restart-float" title="Jugar de nuevo">🔄</button>
 
 <canvas id="bg-canvas"></canvas>
 <div id="load-ov"><div class="spin"></div><p id="load-msg">Calibrando tu precio...</p></div>
@@ -532,7 +536,7 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
       <div id="archivo-entries"></div>
       <button id="lore-reset-btn">↺ Resetear progreso del archivo</button>
     </div>
-    <div id="restart-container" style="width:100%;max-width:340px;margin-top:1rem;"></div>
+
   </div>
 </div>
 
@@ -2157,6 +2161,7 @@ function showSpeech(text, cb) {
 // RESULTADO
 // ============================================================
 function showResult() {
+  document.getElementById('btn-restart-float').className='show';
   // Make sure lore overlay is hidden
   const loreEl = document.getElementById('lore-interrupt');
   if(loreEl) loreEl.className = '';
@@ -2461,7 +2466,7 @@ const LORE_CHAPTERS = [
       "Ah. Aquí hay algo. Un papel. Con instrucciones.",
       "Pone: 'Si has llegado hasta aquí, manda ahora mismo a Alan por WhatsApp un negro, un maletín y un billete. Sin explicaciones. Solo eso. Él ya sabrá.'",
       "El negro no hace esto normalmente. Pero las instrucciones son claras.",
-      "Ha sido un placer conocerte. Gracias por jugar. Última pregunta."
+      "Ha sido un placer conocerte. Gracias por jugar."
     ]
   }
 ];
@@ -2706,55 +2711,27 @@ document.body.addEventListener('click', ()=>{
 buildGrid();
 showScreen('s-intro');
 
-// ============================================================
-// BOTON JUGAR DE NUEVO — creado desde JS
-// ============================================================
-(function() {
-  var container = document.getElementById('restart-container');
-  if (!container) return;
-
-  var btn = document.createElement('button');
-  btn.textContent = 'Jugar de nuevo';
-  btn.style.cssText = [
-    'display:block',
-    'width:100%',
-    'padding:0.9rem 1rem',
-    'background:transparent',
-    'border:1px solid #7A6130',
-    'color:#C9A84C',
-    'font-family:Cormorant Garamond,serif',
-    'font-size:0.85rem',
-    'font-weight:700',
-    'letter-spacing:0.2em',
-    'text-transform:uppercase',
-    'cursor:pointer',
-  ].join(';');
-
-  function restart() {
-    var loreEl = document.getElementById('lore-interrupt');
-    if (loreEl) loreEl.className = '';
-    if (typeof loreTimer !== 'undefined' && loreTimer) clearTimeout(loreTimer);
-    curQ=0; money=0; yesC=0; noC=0; streak=0; streakType=null;
-    negroMiente_used=false; negroMiente_done=false; negrocambia_used=false;
-    negroOfendido=0; negroRoto=false; negroContradicho=false; negroLlamo=false;
-    negroAdmirado=false; negroEnhorabuena=false;
-    lastAcceptedAmount=0; lastAcceptedQ=null; deudaMoral=false;
-    consecutiveNo=0; consecutiveYes=0; altPatternCount=0; lastAnswer=null;
-    clearImpaciencia();
-    stopJazz();
-    var sb = document.getElementById('streak-bar');
-    if (sb) sb.className='';
-    showScreen('s-intro');
-    var mc = document.getElementById('char-money-wrap');
-    if (mc) mc.className='';
-    var aw = document.getElementById('archivo-wrap');
-    if (aw) aw.className='';
-    bankReady=false; questionBank=[];
-  }
-
-  btn.addEventListener('click', restart);
-  container.appendChild(btn);
-})();
+// Floating restart button
+document.getElementById('btn-restart-float').addEventListener('click', function() {
+  this.className = '';
+  var loreEl = document.getElementById('lore-interrupt');
+  if (loreEl) loreEl.className = '';
+  curQ=0; money=0; yesC=0; noC=0; streak=0; streakType=null;
+  negroMiente_used=false; negroMiente_done=false; negrocambia_used=false;
+  negroOfendido=0; negroRoto=false; negroContradicho=false; negroLlamo=false;
+  negroAdmirado=false; negroEnhorabuena=false;
+  lastAcceptedAmount=0; lastAcceptedQ=null; deudaMoral=false;
+  consecutiveNo=0; consecutiveYes=0; altPatternCount=0; lastAnswer=null;
+  clearImpaciencia();
+  stopJazz();
+  document.getElementById('streak-bar').className='';
+  showScreen('s-intro');
+  var mc = document.getElementById('char-money-wrap');
+  if (mc) mc.className='';
+  var aw = document.getElementById('archivo-wrap');
+  if (aw) aw.className='';
+  bankReady=false; questionBank=[];
+});
 </script>
 </body>
 </html>
