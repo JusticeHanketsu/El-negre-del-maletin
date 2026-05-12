@@ -33,6 +33,7 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
 #players-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0.65rem;width:100%;margin:1.25rem 0;}
 .player-btn{padding:1.4rem 0.5rem 1.1rem;background:transparent;border:1px solid var(--gold-d);font-family:'Playfair Display',serif;font-weight:700;letter-spacing:0.08em;cursor:pointer;transition:all 0.25s;display:flex;flex-direction:column;align-items:center;gap:0.5rem;}
 .player-btn:active{transform:scale(0.96);}
+.player-btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 .player-color-dot{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,0.15);}
 .player-btn-name{font-size:0.8rem;letter-spacing:0.12em;text-transform:uppercase;}
 
@@ -62,6 +63,7 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
 .btn{padding:0.85rem 1rem;background:transparent;font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;border:1px solid;}
 .btn:active{transform:scale(0.96);}
 .btn:disabled{opacity:0.3;cursor:not-allowed;transform:none;}
+.btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 #btn-yes{border-color:var(--gold-d);color:var(--gold);}
 #btn-yes:hover:not(:disabled){border-color:var(--gold);box-shadow:0 0 30px rgba(201,168,76,0.18);}
 #btn-no{border-color:#2A1818;color:#7A5050;}
@@ -1765,6 +1767,13 @@ function clearImpaciencia() {
 function startImpaciencia() {
   clearImpaciencia();
   impacienciaTimer = setTimeout(()=>{
+    // Don't fire if a special box is visible or lore is showing
+    const ocBox = document.getElementById('ocurrencia-box');
+    const coBox = document.getElementById('co-box');
+    const loreBox = document.getElementById('lore-interrupt');
+    if ((ocBox && ocBox.className==='show') ||
+        (coBox && coBox.className==='show') ||
+        (loreBox && loreBox.className==='show')) return;
     const frase = IMPACIENCIA_FRASES[Math.floor(Math.random()*IMPACIENCIA_FRASES.length)];
     setExpr('judge');
     showSpeech(frase, null);
@@ -1832,11 +1841,20 @@ function loadQ() {
     negroLlamo = true;
     setTimeout(()=>{
       setExpr('smirk');
+      clearImpaciencia();
+      document.getElementById('btn-yes').disabled = true;
+      document.getElementById('btn-no').disabled = true;
       showSpeech('Un momento.', ()=>{
         setTimeout(()=>{
           showSpeech('...', ()=>{
             setTimeout(()=>{
-              showSpeech('Era mi abogado. Confirma que esto es completamente legal. Seguimos.', null);
+              showSpeech('Era mi abogado. Confirma que esto es completamente legal. Seguimos.', ()=>{
+                // Re-enable buttons after abogado finishes
+                document.getElementById('btn-yes').disabled = false;
+                document.getElementById('btn-no').disabled = false;
+                setExpr('neutral');
+                startImpaciencia();
+              });
             }, 2000);
           });
         }, 1500);
@@ -2142,7 +2160,6 @@ function showResult() {
   const cat = MORAL_CATS.find(c=>money>=c.min&&money<=c.max)||MORAL_CATS[0];
   document.getElementById('res-moral-cat').textContent = `${cat.label} — ${cat.desc}`;
   const fortune = getVeredicto(Object.keys(PLAYERS).find(k=>PLAYERS[k]===currentPlayer)||'otro');
-  const finalComments = fetchFinalComments();
   document.getElementById('res-fortune').textContent = fortune;
   renderArchivo();
 
@@ -2519,7 +2536,7 @@ function showLoreIfNeeded(onDone) {
     });
   }, 800);
 
-  document.getElementById('lore-continue').onclick = ()=>{
+  document.getElementById('lore-continue').onclick = function(){
     if(loreTimer) clearTimeout(loreTimer);
     document.getElementById('lore-interrupt').className = '';
     setLoreProgress(progress + 1);
@@ -2662,10 +2679,10 @@ document.getElementById('btn-co-no').addEventListener('click', ()=>{
     document.getElementById('btn-next').className='show';
   });
 });
-document.getElementById('btn-next').addEventListener('click', ()=>{
+document.getElementById('btn-next').onclick = function() {
   curQ++;
   if(curQ>=TOTAL) showResult(); else loadQ();
-});
+};
 document.getElementById('btn-restart').onclick = function() {
   curQ=0; money=0; yesC=0; noC=0; streak=0; streakType=null;
   negroMiente_used=false; negroMiente_done=false; negrocambia_used=false;
