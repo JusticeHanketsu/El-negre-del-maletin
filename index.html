@@ -931,19 +931,16 @@ SOLO el array JSON de 30 elementos, sin markdown.`,
 
 // Saca 10 preguntas no usadas del banco
 function pickRoundQuestions() {
-  // Asegura al menos 1 trampa si no se ha usado la 30
   const available = questionBank.filter(q => !usedQIds.has(q.id));
   if (available.length < 10) {
-    // Banco agotado — resetear (3ª partida o más)
     usedQIds = new Set();
     return pickRoundQuestions();
   }
-  // Mezclar y coger 10
   const shuffled = [...available].sort(()=>Math.random()-0.5);
   const picked = shuffled.slice(0,10);
   picked.forEach(q => usedQIds.add(q.id));
-  // Reordenar aleatoriamente dentro de la ronda
-  return picked.sort(()=>Math.random()-0.5);
+  const round = picked.sort(()=>Math.random()-0.5);
+  return injectGroupQuestions(round);
 }
 
 // ============================================================
@@ -964,6 +961,14 @@ const FRASES = {
       "Mira que te lo advertí antes de empezar.",
       "Por menos han hecho cosas peores. Y encima sin cobrar.",
       "A veces hay que hacer lo que hay que hacer. Sin drama.",
+      "Esto es exactamente lo que pasa cuando no te paras a pensar antes de actuar.",
+      "Gemma no tiene que enterarse de todo. Aunque igual ya lo sabe.",
+      "Lo he visto venir desde la primera pregunta, la verdad.",
+      "Hay decisiones que definen a las personas. Esta es una de ellas.",
+      "En los escape rooms también hay momentos difíciles. Y siempre salimos. Esto no sé.",
+      "Respeto la decisión aunque no la comparta. Como siempre hago.",
+      "Esto lo comentamos luego. Tranquilamente. Con calma. Y sin juicio.",
+      "No me sorprende. Conozco a esta persona bastante bien.",
     ],
     no: [
       "Hay cosas que no tienen precio. Las tuyas incluidas.",
@@ -978,6 +983,13 @@ const FRASES = {
       "Defender lo que uno cree. Aunque cueste dinero.",
       "El negro lo respeta. A regañadientes, pero lo respeta.",
       "Bien hecho. Aunque Sergi igual dice que él también lo habría rechazado.",
+      "El grupo no debería enterarse de esto. Pero ya es tarde.",
+      "A veces uno se sorprende de sí mismo. Esta es una de esas veces.",
+      "Si Gemma supiera esto... mejor no terminar esa frase.",
+      "Yo en su lugar lo habría pensado más. Mucho más.",
+      "Esto queda entre nosotros. O no. Depende de Edu y su Instagram.",
+      "Llevo años mediando en este grupo y aguantando a todos. Esto me lo apunto. Por si acaso.",
+      "He visto a Sergi intentar ligar durante años, a Edu subir 40 fotos de Ibiza y a Alba hablar de Geralt en una boda. Y esto todavía me ha sorprendido.",
     ],
     high: [
       "Con esa cantidad yo también me lo pensaría seriamente. Seamos honestos.",
@@ -1023,6 +1035,14 @@ const FRASES = {
       "Mis figuras de Warhammer tienen más dignidad que eso.",
       "Sigo buscando chicas que valoren a alguien con principios. Y esto no ayuda.",
       "En el monte esto no se haría. Punto.",
+      "Freya no haría esto. Y Freya es un perro. Con más criterio.",
+      "Yo estaba leyendo un libro cuando me llegó esto. Lo he tenido que cerrar.",
+      "Con lo que cuesta encontrar una chica de calidad y esto es lo que hay.",
+      "El whisky que me tomé anoche tenía más dignidad que esta decisión.",
+      "En el monte aprendes a tomar decisiones de verdad. Esto no es una de ellas.",
+      "Mis figuras de Warhammer me miran con más respeto que esto.",
+      "Kenny G nunca haría algo así. Y Kenny G es un artista con mayúsculas.",
+      "Hay cosas que un hombre hecho y derecho no hace. Esta es una de ellas.",
     ],
     no: [
       "Bien. Eso es lo que haría un hombre con criterio. Como yo.",
@@ -1036,6 +1056,13 @@ const FRASES = {
       "Yo llevo años haciendo lo correcto. Bienvenido al club.",
       "Eso o tienes o no tienes. Yo lo tengo muy claro.",
       "El que lee mucho aprende a decir que no. Yo llevo 40 libros este año.",
+      "Freya también está decepcionada. Lo sé porque la conozco bien.",
+      "En serio, que alguien me presente a una chica que no haga estas cosas.",
+      "Yo invertiría ese dinero en fondos indexados y me quedaría tan ancho.",
+      "He leído 40 libros este año y ninguno me ha preparado para esto.",
+      "El Henry Cavill original no haría esto. Y Henry Cavill hace de todo.",
+      "Esto no se lo cuento a Freya. La traumatizaría.",
+      "Hay un límite moral que yo tengo muy claro. Y esto lo cruza.",
     ],
     high: [
       "Vale, eso ya es mucho dinero. Igual me lo planteaba yo también. Igual.",
@@ -1079,6 +1106,14 @@ const FRASES = {
       "Yo lo entiendo completamente. Y encima sin tener que hablar con mi ChatGPT después.",
       "Aleix no haría esto porque no tiene personalidad para nada 😂 pero tú sí, bien",
       "Aaay pobrecito/a. Qué presión más grande 😭 pero ha valido la pena",
+      "Aaay yo esto lo consulto con mi ChatGPT antes de opinar 😭",
+      "Geralt de Rivia nunca estaría en esta situación. Porque tiene criterio y espada.",
+      "Esto me recuerda a un arco de Jujutsu Kaisen donde alguien vende su alma 😂",
+      "Con lo que me cuesta a mí tomar decisiones... y esto en dos segundos.",
+      "Yo llevaría semanas dándole vueltas con mi ChatGPT y todavía no decidiría.",
+      "Aleix tampoco haría esto. Aunque no haría nada porque es un NPC con brazos buenos.",
+      "Aaay me dan ganas de ir a Port Aventura a olvidar lo que acabo de ver 😭",
+      "Esto me quita las ganas de dejar de fumar, en serio.",
     ],
     no: [
       "Bien hecho!! Yo tampoco lo haría 🙌 bueno... creo que no",
@@ -1092,6 +1127,13 @@ const FRASES = {
       "Bien hecho. Hay cosas que no. Aunque luego te arrepientas del dinero como yo de todo.",
       "Yo lo habría pensado muuuucho más. Mucho. Horas.",
       "Eso tiene mérito viniendo de alguien. Yo llevo meses sin relaciones y tampoco me cuesta tanto decir no a algo jaja",
+      "Mi ChatGPT me dice que esto tiene consecuencias psicológicas. Lo acabo de preguntar.",
+      "Geralt tiene más moral en el meñique que esto. Y eso que Geralt mata brujas.",
+      "Yo con mi situación económica actual no podría permitirme tener estos dilemas.",
+      "En Jujutsu Kaisen esto sería un arco entero de redención. Aquí es un martes.",
+      "Aaay que alguien me lleve a Port Aventura después de esto por favor 😭",
+      "Yo también lo haría. No voy a mentir. Necesito el dinero.",
+      "Esto lo entiendo perfectamente. Mis ex me han hecho cosas peores gratis.",
     ],
     high: [
       "Eso ya es mucho dinero, no voy a mentir 😳 yo me rendía antes",
@@ -1135,6 +1177,14 @@ const FRASES = {
       "Lo habría hecho y además le mandaba un story a Clara diciéndolo. Transparente total.",
       "En Ibiza vi cosas peores por mucho menos. Sats o no sats.",
       "Correcto. Yo soy runner y esto es como un reto más. Oc.",
+      "Esto lo subo al Insta con un filtro bueno y queda genial. Sats o no sats.",
+      "En Ibiza vi cosas peores. Mucho peores. No voy a decir más. Oc.",
+      "Sol aprobaría esto. Sol aprueba todo. Es muy buen perro y muy sabio.",
+      "Oc. Yo lo mismo haría. Que conste en el registro oficial.",
+      "Esto es digno de Horrorland. Pero en plan guay, no de miedo.",
+      "Yo nunca miento y te digo que yo lo haría sin pensarlo dos veces. Sats o no sats.",
+      "Pero qué shulo esto, no? Hay que tenerlos bien puestos para hacer esto.",
+      "Lo subiría al Insta en stories con música dramática de fondo. Puro contenido.",
     ],
     no: [
       "Sats o no sats, eso yo tampoco lo haría. Hay límites.",
@@ -1148,6 +1198,13 @@ const FRASES = {
       "Sats o no sats, eso estaba clarísimo que no. Sol estaría orgulloso.",
       "Ahí está. Hay que tener cabeza. A veces. Oc.",
       "Yo lo mismo. Además no quedaría bien en Instagram.",
+      "Clara también lo haría. Estoy bastante seguro. Nos parecemos mucho.",
+      "En Ibiza aprendes que todo tiene un precio y que hay que disfrutar. Sats o no sats.",
+      "Yo soy muy adulto y muy responsable y entiendo perfectamente esta decisión. Oc.",
+      "Horrorland tiene situaciones más extremas que esta y la gente sale adelante.",
+      "Esto merece stories, reels y una publicación fija. Contenido de calidad puro.",
+      "Sol me miraría con orgullo si supiera esto. Oc. Pero qué shulo, no?",
+      "Yo nunca haría algo que no sea auténtico. Y esto es muy auténtico. Sats.",
     ],
     high: [
       "Sats o no sats, eso ya es mucho dinero tío",
@@ -1396,6 +1453,105 @@ function maybeAudience(qText, playerAnswer, feedbackText, container, boxEl) {
 // ============================================================
 // CARGAR PREGUNTA
 // ============================================================
+// ============================================================
+// PREGUNTAS PERSONALIZADAS POR JUGADOR (referencias al grupo)
+// ============================================================
+const PLAYER_QUESTIONS = {
+  alan: [
+    {question:"¿Le mandarías ahora un audio a Gemma explicándole exactamente qué tipo de persona es Sergi cuando no hay chicas delante?",amount:150,feedback_yes:"Gemma muy bien informada. El negro llama a eso lealtad selectiva.",feedback_no:"Los secretos entre amigos: el único activo que no cotiza.",has_counteroffer:false,expr_yes:"despise",expr_no:"smirk",is_trap:false},
+    {question:"¿Aceptarías que Edu subiera una foto tuya a Instagram con un pie de foto ridículo sin pedirte permiso?",amount:75,feedback_yes:"75€ y tu imagen digital, en manos de Edu. El negro reza por ti.",feedback_no:"El control de la propia imagen: el único activo que Edu no puede comprarte.",has_counteroffer:false,expr_yes:"laugh",expr_no:"smirk",is_trap:false},
+    {question:"¿Le dirías a Alba en su cara que Aleix le gusta solo porque está bueno y que eso la hace bastante superficial?",amount:200,feedback_yes:"Una amistad puesta a prueba. El negro lo llama honestidad quirúrgica.",feedback_no:"La diplomacia entre amigos: el pegamento más caro del mercado.",has_counteroffer:false,expr_yes:"despise",expr_no:"judge",is_trap:false},
+    {question:"¿Aceptarías leer en voz alta aquí el último mensaje romántico que le mandaste a Gemma?",amount:120,feedback_yes:"El lado cursi expuesto. Ooooh may good... El negro lo archiva.",feedback_no:"El amor epistolar: el único activo que se deprecia con la exposición.",has_counteroffer:false,expr_yes:"laugh",expr_no:"smirk",is_trap:false},
+    {question:"¿Le confesarías a Sergi que sus inversiones en fondos indexados son una forma de sentirse interesante?",amount:100,feedback_yes:"Una amistad y un ego financiero, destruidos. El negro aplaude.",feedback_no:"La verdad financiera entre amigos: el único mercado sin regulación.",has_counteroffer:false,expr_yes:"laugh",expr_no:"smirk",is_trap:false},
+    {question:"¿Aceptarías llamar a Gemma ahora y decirle que estás jugando a un juego de preguntas comprometedoras?",amount:80,feedback_yes:"Transparencia total. El negro lo respeta aunque le aburra un poco.",feedback_no:"Los secretos de pareja: el único sector con déficit permanente.",has_counteroffer:false,expr_yes:"smirk",expr_no:"judge",is_trap:false},
+    {question:"¿Le dirías a Edu en su cara que no tener trabajo ni estudios a su edad empieza a ser un problema real?",amount:150,feedback_yes:"La verdad dicha a la cara. El negro lo llama servicio público.",feedback_no:"La comodidad del silencio: el único lujo que los amigos se dan.",has_counteroffer:false,expr_yes:"despise",expr_no:"smirk",is_trap:false},
+    {question:"¿Aceptarías que el grupo votara cuál de tus decisiones vitales ha sido la peor y te la dijeran a la cara?",amount:200,feedback_yes:"Democracia directa y brutal. El negro lo llama terapia de grupo.",feedback_no:"El ego: el único activo que el mercado no puede auditar.",has_counteroffer:false,expr_yes:"shock",expr_no:"judge",is_trap:false},
+    {question:"¿Le contarías a Alba que el grupo habla de ella cuando no está?",amount:90,feedback_yes:"Una amistad traicionada con elegancia. Eres una shet de persona.",feedback_no:"La lealtad entre amigos: un activo en extinción que tú preservas.",has_counteroffer:false,expr_yes:"despise",expr_no:"smirk",is_trap:false},
+    {question:"¿Le dirías a Sergi que el motivo por el que no liga es su personalidad y no la mala suerte?",amount:175,feedback_yes:"La verdad más cruel dicha con la mayor amabilidad. El negro asiente.",feedback_no:"El consuelo del amigo: el único servicio que no tiene precio.",has_counteroffer:false,expr_yes:"despise",expr_no:"smirk",is_trap:false},
+    {question:"¿Aceptarías confesar aquí cuál es el defecto de cada persona de este grupo que más te molesta?",amount:300,feedback_yes:"El negro abre el cuaderno. Esto va a ser muy interesante.",feedback_no:"La diplomacia del grupo: el pegamento más frágil que existe.",has_counteroffer:false,expr_yes:"shock",expr_no:"judge",is_trap:false},
+  ],
+  sergi: [
+    {question:"¿Le pedirías a Alba ahora mismo por mensaje que te presentara a alguna amiga suya sin dar explicaciones?",amount:50,feedback_yes:"50€ y una petición tan desesperada como predecible. El negro toma nota.",feedback_no:"El orgullo del soltero: el único activo que cuesta más de lo que vale.",has_counteroffer:false,expr_yes:"laugh",expr_no:"despise",is_trap:false},
+    {question:"¿Aceptarías que Edu subiera una foto tuya de tu peor momento a Instagram con ubicación, etiquetas y un reel de fondo con Diggy Diggy Hole?",amount:125,feedback_yes:"Tu imagen destruida al ritmo de tu canción favorita. Poético.",feedback_no:"El control de la imagen digital: el único territorio que Edu no puede invadir.",has_counteroffer:false,expr_yes:"laugh",expr_no:"smirk",is_trap:false},
+    {question:"¿Le dirías a Alan, con pelos y señales y delante de todos, si crees que Gemma está con él por amor o por comodidad?",amount:200,feedback_yes:"Una amistad con grieta permanente. El negro lo llama honestidad fatal.",feedback_no:"La diplomacia entre amigos: el único contrato que nadie firma.",has_counteroffer:false,expr_yes:"despise",expr_no:"judge",is_trap:false},
+    {question:"¿Aceptarías cantar Diggy Diggy Hole completa en voz alta aquí ahora mismo?",amount:75,feedback_yes:"Una actuación que nadie esperaba y nadie va a olvidar. El negro aplaude.",feedback_no:"La dignidad musical: el único activo que Diggy Diggy Hole no puede comprar.",has_counteroffer:false,expr_yes:"laugh",expr_no:"smirk",is_trap:false},
+    {question:"¿Le confesarías a Alba que Aleix te parece tan interesante como un NPC de videojuego?",amount:100,feedback_yes:"Una opinión devastadora sobre alguien con muy buenos brazos. Elegante.",feedback_no:"La diplomacia sobre los crushes ajenos: el único mercado sin cotización.",has_counteroffer:false,expr_yes:"laugh",expr_no:"smirk",is_trap:false},
+    {question:"¿Aceptarías que el grupo revisara tu historial de búsquedas de los últimos 7 días?",amount:250,feedback_yes:"El historial de Sergi, expuesto. El negro ya sabía lo que iba a encontrar.",feedback_no:"El historial privado: el único documento que ni Freya puede leer.",has_counteroffer:false,expr_yes:"shock",expr_no:"laugh",is_trap:false},
+    {question:"¿Le dirías a Edu en su cara que su estilo de vida es básicamente vivir del cuento?",amount:150,feedback_yes:"La verdad dicha con navaja de monte. El negro lo llama servicio amistoso.",feedback_no:"El respeto al modelo de vida ajeno: el único activo no negociable.",has_counteroffer:false,expr_yes:"despise",expr_no:"smirk",is_trap:false},
+    {question:"¿Le confesarías a Alba que la has encontrado atractiva alguna vez aunque sea un momento?",amount:175,feedback_yes:"Una confesión que cambia la dinámica del grupo para siempre. Fascinante.",feedback_no:"Los pensamientos secretos: el único activo que el mercado no puede auditar.",has_counteroffer:false,expr_yes:"shock",expr_no:"smirk",is_trap:false},
+    {question:"¿Aceptarías mostrar aquí las últimas 10 fotos que has guardado en el móvil?",amount:200,feedback_yes:"Las fotos guardadas de Sergi. El negro las archiva con discreción. Mucha.",feedback_no:"La galería privada: el único museo que nadie puede visitar sin permiso.",has_counteroffer:false,expr_yes:"shock",expr_no:"laugh",is_trap:false},
+    {question:"¿Aceptarías que el grupo eligiera qué figura de Warhammer pintas la próxima vez y con qué colores?",amount:60,feedback_yes:"La autonomía artística, delegada. Freya lo habría hecho mejor.",feedback_no:"El arte de pintar figuras: el único territorio donde Sergi manda.",has_counteroffer:false,expr_yes:"laugh",expr_no:"despise",is_trap:false},
+    {question:"¿Le dirías a Edu que pinta figuras de Warhammer porque no tiene vida social suficiente para hacer otra cosa?",amount:150,feedback_yes:"Una verdad devastadora entre amigos. Eres una shet de persona con criterio.",feedback_no:"El respeto por los hobbies ajenos: el único contrato que los amigos cumplen.",has_counteroffer:false,expr_yes:"despise",expr_no:"judge",is_trap:false},
+  ],
+  alba: [
+    {question:"¿Le dirías a Sergi en su cara que Aleix tiene mejores brazos que él aunque Sergi vaya al monte todos los fines de semana?",amount:125,feedback_yes:"Una comparativa muscular devastadora. El negro lo llama crítica constructiva.",feedback_no:"El ego montañero de Sergi: el único activo que no se puede auditar.",has_counteroffer:false,expr_yes:"laugh",expr_no:"smirk",is_trap:false},
+    {question:"¿Aceptarías que Alan leyera en voz alta tu última conversación completa con ChatGPT?",amount:200,feedback_yes:"Tu psicólogo artificial, expuesto. El negro lo llama terapia pública.",feedback_no:"Las conversaciones con ChatGPT: el único diario que nadie puede leer.",has_counteroffer:false,expr_yes:"shock",expr_no:"laugh",is_trap:false},
+    {question:"¿Le confesarías a Edu que alguna vez has stalkeado el Instagram de Aleix más de 10 minutos seguidos?",amount:100,feedback_yes:"Una confesión que Edu subirá a Instagram antes de que acabes la frase.",feedback_no:"El stalking digital: el único deporte que todos practican y nadie admite.",has_counteroffer:false,expr_yes:"despise",expr_no:"laugh",is_trap:false},
+    {question:"¿Aceptarías ir a Port Aventura vestida de personaje de Jujutsu Kaisen durante todo el día?",amount:150,feedback_yes:"La obsesión hecha realidad. El negro lo llama coherencia extrema.",feedback_no:"La dignidad en los parques temáticos: el único activo que Gojo no tiene.",has_counteroffer:false,expr_yes:"laugh",expr_no:"smirk",is_trap:false},
+    {question:"¿Le pedirías a Alan consejo sobre tu situación económica sabiendo que te va a dar una charla de media hora sin parar?",amount:50,feedback_yes:"El consejo más caro y gratuito del mercado. Alan ya está preparando el PowerPoint.",feedback_no:"La autonomía financiera: el único activo que Alan no puede gestionar por ti.",has_counteroffer:false,expr_yes:"laugh",expr_no:"smirk",is_trap:false},
+    {question:"¿Le dirías a Sergi en su cara que si no liga es porque habla de sí mismo el 90% del tiempo?",amount:175,feedback_yes:"La verdad más útil que nadie le ha dicho nunca. El negro lo llama consultoría.",feedback_no:"El ego de Sergi: el único activo que cotiza a la baja en el mercado romántico.",has_counteroffer:false,expr_yes:"despise",expr_no:"smirk",is_trap:false},
+    {question:"¿Aceptarías que el grupo leyera en voz alta los últimos 5 mensajes que le has mandado a tu ex?",amount:225,feedback_yes:"El ex, expuesto involuntariamente. El negro llama a eso karma compartido.",feedback_no:"Los mensajes al ex: el único historial que el mercado protege con pudor.",has_counteroffer:false,expr_yes:"shock",expr_no:"laugh",is_trap:false},
+    {question:"¿Le confesarías a Alan que usas ChatGPT como psicólogo porque es más barato que uno de verdad y porque no te juzga?",amount:100,feedback_yes:"La salud mental del siglo XXI, expuesta. El negro lo entiende perfectamente.",feedback_no:"La relación con ChatGPT: el único vínculo terapéutico sin copago.",has_counteroffer:false,expr_yes:"laugh",expr_no:"smirk",is_trap:false},
+    {question:"¿Aceptarías dejar de fumar esta semana con el grupo como testigo y consecuencias reales si fallas?",amount:175,feedback_yes:"Un compromiso público con consecuencias. El negro lo llama contrato vinculante.",feedback_no:"El tabaco: el único activo que sigue en cartera aunque debería venderse.",has_counteroffer:false,expr_yes:"smirk",expr_no:"despise",is_trap:false},
+    {question:"¿Le dirías a Edu que su perro Sol tiene más personalidad y más vida que él?",amount:125,feedback_yes:"Una comparativa perro-humano devastadora. Sol gana por goleada.",feedback_no:"El respeto a Sol: el único activo canino que todos protegen.",has_counteroffer:false,expr_yes:"laugh",expr_no:"smirk",is_trap:false},
+    {question:"¿Aceptarías confesar aquí cuánto tiempo llevas sin tener relaciones sexuales con fecha exacta?",amount:250,feedback_yes:"Una estadística personal muy concreta. El negro la archiva con respeto.",feedback_no:"La vida íntima: el único sector sin auditoría pública posible.",has_counteroffer:false,expr_yes:"shock",expr_no:"laugh",is_trap:false},
+    {question:"¿Le contarías a Sergi que Aleix te parece más atractivo que él solo por los brazos y que eso te parece suficiente?",amount:150,feedback_yes:"Una valoración física devastadora para Sergi. El negro lo llama sinceridad tóxica.",feedback_no:"La diplomacia muscular: el único mercado donde Sergi cree competir.",has_counteroffer:false,expr_yes:"despise",expr_no:"laugh",is_trap:false},
+  ],
+  edu: [
+    {question:"¿Aceptarías que Alan revisara tu Instagram en voz alta comentando cada foto de Ibiza una por una con total honestidad?",amount:175,feedback_yes:"El postureo de Ibiza, auditado en tiempo real. El negro toma palomitas.",feedback_no:"El Instagram de Edu: el único portfolio que no admite revisión externa.",has_counteroffer:false,expr_yes:"laugh",expr_no:"despise",is_trap:false},
+    {question:"¿Le confesarías a Alba que la has stalkeado en redes esta semana más de una vez?",amount:100,feedback_yes:"Una confesión que nadie esperaba y todos sospechaban. El negro lo archiva.",feedback_no:"El stalking selectivo: el único deporte que Edu practica con discreción.",has_counteroffer:false,expr_yes:"despise",expr_no:"laugh",is_trap:false},
+    {question:"¿Le mandarías a Clara ahora mismo un mensaje diciendo que llevas semanas sin correr y que todo lo que le has contado es postureo?",amount:125,feedback_yes:"La transparencia más costosa que has tenido nunca. Clara necesita saberlo.",feedback_no:"El postureo de runner: el único activo que resiste sin entrenar.",has_counteroffer:false,expr_yes:"despise",expr_no:"smirk",is_trap:false},
+    {question:"¿Le confesarías al grupo cuánto dinero llevas gastado este mes en cosas que no necesitabas?",amount:150,feedback_yes:"La contabilidad de Edu, expuesta. El negro llama a eso auditoría voluntaria.",feedback_no:"Los gastos superfluos: el único presupuesto que Edu prefiere no detallar.",has_counteroffer:false,expr_yes:"shock",expr_no:"laugh",is_trap:false},
+    {question:"¿Aceptarías pasar 24 horas sin subir nada a Instagram ni ver las historias de nadie?",amount:200,feedback_yes:"24 horas de existencia no documentada. El negro lo llama muerte temporal.",feedback_no:"Instagram: el único órgano vital que Edu no puede desconectar.",has_counteroffer:false,expr_yes:"shock",expr_no:"despise",is_trap:false},
+    {question:"¿Le dirías a Sergi en su cara que pinta figuras de Warhammer porque no tiene vida social suficiente?",amount:125,feedback_yes:"La verdad más dura dicha sin filtro. Eres una shet de persona con puntería.",feedback_no:"El respeto por los hobbies ajenos: el único contrato que Edu cumple a veces.",has_counteroffer:false,expr_yes:"despise",expr_no:"smirk",is_trap:false},
+    {question:"¿Le contarías a Clara que el grupo sabe absolutamente todo lo que le has contado sobre ella?",amount:175,feedback_yes:"Clara, muy bien informada de aquí en adelante. El negro lo llama justicia.",feedback_no:"Los secretos de pareja: el único activo que Edu protege mejor que su Instagram.",has_counteroffer:false,expr_yes:"despise",expr_no:"smirk",is_trap:false},
+    {question:"¿Aceptarías que Alan gestionara tu Instagram durante 1 hora publicando lo que quisiera sin filtros?",amount:200,feedback_yes:"El Instagram de Edu en manos de Alan. El negro reza por los seguidores.",feedback_no:"El control editorial de Instagram: el único poder que Edu ejerce con autoridad.",has_counteroffer:false,expr_yes:"shock",expr_no:"despise",is_trap:false},
+    {question:"¿Le confesarías a Alba que Carolina Abril es tu actriz favorita y le explicarías con detalle por qué?",amount:150,feedback_yes:"Una confesión muy específica y muy detallada. El negro la archiva con pudor.",feedback_no:"Los gustos cinematográficos de Edu: el único secreto que merece protección.",has_counteroffer:false,expr_yes:"despise",expr_no:"laugh",is_trap:false},
+    {question:"¿Aceptarías que Sergi te enseñara a poner una lavadora a cambio de escuchar Diggy Diggy Hole entera sin quejarte?",amount:75,feedback_yes:"Un intercambio cultural sin precedentes. El negro lo llama civilización.",feedback_no:"La autonomía doméstica: el único activo que Edu lleva años postergando.",has_counteroffer:false,expr_yes:"laugh",expr_no:"despise",is_trap:false},
+  ],
+  generic: [
+    {question:"¿Le dirías a la cara al miembro de este grupo que más te ha decepcionado este año y por qué exactamente?",amount:250,feedback_yes:"Una decepción verbalizada con elegancia. El negro llama a eso valentía cara.",feedback_no:"La decepción silenciosa: el único sentimiento que el mercado no regula.",has_counteroffer:false,expr_yes:"despise",expr_no:"judge",is_trap:false},
+    {question:"¿Aceptarías que el negro llamara ahora al contacto más vergonzoso de tu agenda con el altavoz puesto?",amount:300,feedback_yes:"Una llamada que nadie esperaba hacer ni recibir. El negro marca el número.",feedback_no:"La agenda privada: el único directorio que el negro no puede auditar. Hoy.",has_counteroffer:false,expr_yes:"shock",expr_no:"laugh",is_trap:false},
+    {question:"¿Le mandarías un audio de 1 minuto a alguien del grupo confesándole algo que nunca le has dicho?",amount:175,feedback_yes:"Un minuto que cambia una dinámica de años. El negro lo llama inversión emocional.",feedback_no:"Lo no dicho: el único activo que el tiempo no devalúa.",has_counteroffer:false,expr_yes:"shock",expr_no:"smirk",is_trap:false},
+    {question:"¿Aceptarías que el grupo votara tu mayor defecto y te lo dijeran todos a la vez en voz alta?",amount:225,feedback_yes:"La democracia más brutal que existe. El negro la llama terapia exprés.",feedback_no:"El ego: el único activo que no admite auditores externos.",has_counteroffer:false,expr_yes:"shock",expr_no:"judge",is_trap:false},
+    {question:"¿Le contarías al grupo tu mentira más grande de los últimos 6 meses con todos los detalles?",amount:200,feedback_yes:"La verdad más cara que has dicho nunca. El negro ya lo sabía.",feedback_no:"La mentira perfecta: el único activo que se devalúa con la confesión.",has_counteroffer:false,expr_yes:"shock",expr_no:"smirk",is_trap:false},
+    {question:"¿Aceptarías que alguien del grupo leyera en voz alta tus últimas búsquedas de Google?",amount:275,feedback_yes:"El historial expuesto. El negro ya sabía lo que iba a encontrar. Siempre.",feedback_no:"Las búsquedas de Google: el único espejo que no miente nunca.",has_counteroffer:false,expr_yes:"shock",expr_no:"laugh",is_trap:false},
+    {question:"¿Le dirías a alguien del grupo cuánto dinero tienes realmente ahorrado a día de hoy?",amount:150,feedback_yes:"La transparencia financiera entre amigos. El negro lo llama suicidio económico.",feedback_no:"Los ahorros: el secreto mejor guardado de cualquier amistad.",has_counteroffer:false,expr_yes:"smirk",expr_no:"judge",is_trap:false},
+    {question:"¿Aceptarías confesar aquí a quién del grupo le darías un beso si tuvieras que elegir obligatoriamente?",amount:200,feedback_yes:"Una elección que nadie esperaba y que cambia la cena de esta semana.",feedback_no:"El beso hipotético: el único mercado que el grupo prefiere no abrir.",has_counteroffer:false,expr_yes:"shock",expr_no:"laugh",is_trap:false},
+    {question:"¿Le mandarías un mensaje ahora a alguien del grupo diciéndole lo que más te irrita de él con pelos y señales?",amount:175,feedback_yes:"Un mensaje que llegará en segundos y del que no hay vuelta atrás. Fascinante.",feedback_no:"La irritación silenciosa: el único combustible que mantiene las amistades vivas.",has_counteroffer:false,expr_yes:"despise",expr_no:"smirk",is_trap:false},
+    {question:"¿Aceptarías que el negro leyera en voz alta el último sueño erótico que recuerdas?",amount:350,feedback_yes:"El subconsciente, expuesto. El negro lo archiva con discreción absoluta.",feedback_no:"Los sueños eróticos: el único contenido que no se puede moderar.",has_counteroffer:false,expr_yes:"shock",expr_no:"laugh",is_trap:false},
+    {question:"¿Le contarías al grupo la situación más comprometedora sexualmente en la que te has visto?",amount:300,feedback_yes:"Una historia que el grupo va a recordar en cada reunión futura. Para siempre.",feedback_no:"Las anécdotas íntimas: el único activo que se aprecia con el tiempo.",has_counteroffer:false,expr_yes:"shock",expr_no:"smirk",is_trap:false},
+    {question:"¿Aceptarías confesar aquí cuál es el miembro de este grupo al que menos llamarías si tuvieras un problema grave?",amount:225,feedback_yes:"Una revelación que va a incomodar a alguien aquí presente. El negro lo valora.",feedback_no:"La jerarquía de confianza del grupo: el único organigrama que nadie publica.",has_counteroffer:false,expr_yes:"despise",expr_no:"judge",is_trap:false},
+  ]
+};
+
+// Inject player-specific and generic questions into the round (3-4 per round max)
+function injectGroupQuestions(roundQs) {
+  if (!currentPlayer || !PLAYER_QUESTIONS[currentPlayer.id]) return roundQs;
+  const specific = [...PLAYER_QUESTIONS[currentPlayer.id]].sort(()=>Math.random()-0.5).slice(0,2);
+  const generic = [...PLAYER_QUESTIONS.generic].sort(()=>Math.random()-0.5).slice(0,2);
+  const injected = [...specific,...generic].sort(()=>Math.random()-0.5);
+  // Give them proper ids
+  let fakeId = 200;
+  injected.forEach(q=>{ q.id=fakeId++; });
+  // Replace 4 random non-trap questions in the round
+  let replaced=0;
+  const result=roundQs.map(q=>{
+    if(replaced<injected.length && !q.is_trap && Math.random()<0.5){
+      replaced++;
+      return injected[replaced-1];
+    }
+    return q;
+  });
+  // If not enough replaced, force remaining at end (before trap)
+  while(replaced<injected.length){
+    const idx=result.findIndex((q,i)=>!q.is_trap&&i>0);
+    if(idx>-1){ result[idx]=injected[replaced]; replaced++; }
+    else break;
+  }
+  return result;
+}
+
 // ============================================================
 // ESTADO MECÁNICAS ESPECIALES
 // ============================================================
@@ -2130,6 +2286,7 @@ function getFallback() {
 // ============================================================
 function selectPlayer(pid) {
   currentPlayer = PLAYERS[pid];
+  currentPlayer.id = pid;
   curQ=0; money=0; yesC=0; noC=0; streak=0; streakType=null;
   // Reset all special mechanics
   negroMiente_used=false; negroMiente_done=false; negrocambia_used=false;
