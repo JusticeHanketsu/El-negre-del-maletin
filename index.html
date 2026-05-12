@@ -136,6 +136,36 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
 #btn-restart{padding:0.8rem 2.5rem;background:transparent;border:1px solid var(--gold-d);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;}
 #btn-restart:hover{border-color:var(--gold);background:rgba(201,168,76,0.05);}
 
+/* LORE SYSTEM */
+#lore-interrupt{display:none;position:fixed;inset:0;background:rgba(7,7,6,0.96);z-index:400;align-items:center;justify-content:center;flex-direction:column;padding:2rem;}
+#lore-interrupt.show{display:flex;animation:fadeUp 0.5s ease;}
+#lore-box{max-width:520px;width:100%;border:1px solid var(--gold-d);background:var(--bg3);padding:2rem 2rem 1.5rem;}
+#lore-chapter-label{font-size:0.58rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold-d);margin-bottom:0.5rem;}
+#lore-chapter-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--gold);margin-bottom:1.25rem;line-height:1.3;}
+#lore-text{font-size:0.92rem;line-height:1.85;color:var(--text-d);font-style:italic;min-height:4rem;}
+#lore-cursor{display:inline-block;width:2px;height:1em;background:var(--gold-d);vertical-align:middle;margin-left:2px;animation:cursorBlink 0.7s step-end infinite;}
+#lore-continue{display:none;margin-top:1.5rem;width:100%;padding:0.75rem;background:transparent;border:1px solid var(--gold-d);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+#lore-continue:hover{border-color:var(--gold);background:rgba(201,168,76,0.05);}
+#lore-continue.show{display:block;}
+
+/* ARCHIVO DEL NEGRO en resultado */
+#archivo-wrap{width:100%;max-width:480px;display:none;margin-top:0.5rem;}
+#archivo-wrap.show{display:block;animation:fadeUp 0.5s ease;}
+#archivo-title{display:flex;align-items:center;gap:0.5rem;padding:0.55rem 0.9rem;background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);margin-bottom:0.5rem;}
+#archivo-title span{font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:700;color:var(--gold);}
+.lore-entry{padding:0.65rem 0.9rem;border:1px solid;margin-bottom:0.4rem;cursor:pointer;transition:all 0.2s;}
+.lore-entry.unlocked{border-color:rgba(201,168,76,0.25);background:rgba(201,168,76,0.03);}
+.lore-entry.unlocked:hover{border-color:var(--gold-d);background:rgba(201,168,76,0.06);}
+.lore-entry.locked{border-color:rgba(60,50,30,0.4);background:rgba(0,0,0,0.2);cursor:default;opacity:0.5;}
+.lore-entry.new-unlock{border-color:var(--gold);animation:goldpulse 1.5s ease 2;}
+.lore-entry-header{display:flex;justify-content:space-between;align-items:center;}
+.lore-entry-label{font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold-d);}
+.lore-entry-new{font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);background:rgba(201,168,76,0.15);padding:0.1rem 0.4rem;}
+.lore-entry-title{font-family:'Playfair Display',serif;font-size:0.9rem;color:var(--gold);margin-top:0.15rem;}
+.lore-entry-preview{font-size:0.78rem;color:var(--text-d);font-style:italic;margin-top:0.3rem;line-height:1.5;display:none;}
+.lore-entry.unlocked .lore-entry-preview{display:block;}
+.lore-entry.locked .lore-entry-title{color:var(--text-dd);}
+
 /* CONTADOR DE DINERO — pancarta al lado del negro */
 #char-money-wrap{display:none;justify-content:center;align-items:center;gap:0.75rem;margin-bottom:0.5rem;width:100%;}
 #char-money-wrap.show{display:flex;}
@@ -186,6 +216,14 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
 
 <canvas id="bg-canvas"></canvas>
 <div id="load-ov"><div class="spin"></div><p id="load-msg">Calibrando tu precio...</p></div>
+<div id="lore-interrupt">
+  <div id="lore-box">
+    <div id="lore-chapter-label">◆ El negro te cuenta algo</div>
+    <div id="lore-chapter-title"></div>
+    <div id="lore-text"><span id="lore-cursor"></span></div>
+    <button id="lore-continue">Continuar →</button>
+  </div>
+</div>
 
 <div id="app">
   <div id="hdr" style="text-align:center;margin-bottom:1.5rem;width:100%;">
@@ -485,6 +523,10 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
     <div id="res-aud-wrap">
       <div id="res-aud-hdr"><span>💬 El grupo reacciona</span></div>
       <div id="res-aud-comments"></div>
+    </div>
+    <div id="archivo-wrap">
+      <div id="archivo-title"><span>📜 Archivo del negro</span></div>
+      <div id="archivo-entries"></div>
     </div>
     <button id="btn-restart">Jugar de nuevo</button>
   </div>
@@ -1816,6 +1858,22 @@ function loadQ() {
 
   // Audiencia solo tras responder — eliminada la anticipada
 
+  // LORE: en la pregunta 9 (curQ===8), interrumpir con capítulo
+  if (curQ === 8) {
+    // Disable buttons, show lore, re-enable after
+    document.getElementById('btn-yes').disabled = true;
+    document.getElementById('btn-no').disabled = true;
+    clearImpaciencia();
+    setTimeout(()=>{
+      showLoreIfNeeded(()=>{
+        document.getElementById('btn-yes').disabled = false;
+        document.getElementById('btn-no').disabled = false;
+        startImpaciencia();
+      });
+    }, 1200);
+    return;
+  }
+
   startImpaciencia();
 }
 
@@ -2052,6 +2110,7 @@ function showResult() {
   const fortune = getVeredicto(Object.keys(PLAYERS).find(k=>PLAYERS[k]===currentPlayer)||'otro');
   const finalComments = fetchFinalComments();
   document.getElementById('res-fortune').textContent = fortune;
+  renderArchivo();
   if (finalComments && finalComments.length) {
     renderWaBubbles(finalComments, document.getElementById('res-aud-comments'));
     document.getElementById('res-aud-wrap').style.display='block';
@@ -2282,6 +2341,202 @@ function getFallback() {
 }
 
 // ============================================================
+// SISTEMA DE LORE — Niger Blackrok
+// ============================================================
+const LORE_CHAPTERS = [
+  {
+    id: 1,
+    title: "El día que lo entendí todo",
+    preview: "Cuando era pobre, vivía en mi tribu en África...",
+    text: [
+      "Oye. Llevamos un rato juntos. Te voy a contar algo sobre mí.",
+      "Cuando era pobre, vivía en mi tribu en África. Tenía 6 años. Mi padre vendió nuestra única cabra a un turista alemán por 3 euros. El alemán se fue en un jeep con aire acondicionado. Mi padre estaba feliz. Yo estaba confuso.",
+      "Esa noche le pregunté: papá, ¿cuánto vale una cabra? Me dijo: 3 euros. Le pregunté: ¿y el jeep? Me dijo: no lo sé. Yo sí lo sabía. 40.000 euros.",
+      "Esa noche decidí que yo nunca iba a ser el que da algo valioso por nada. Que si alguien se iba en jeep, ese alguien iba a ser yo.",
+      "Siguiente pregunta."
+    ]
+  },
+  {
+    id: 2,
+    title: "El negocio de los bailes",
+    preview: "Con 14 años descubrí que los europeos pagaban dinero real...",
+    text: [
+      "Con 14 años descubrí que los europeos pagaban dinero real para que un negro cachas les felicitara el cumpleaños por vídeo. Bailando. Con entusiasmo. Empecé yo solo. Margen bruto del 100%. Sin costes fijos. Sin oficina. Sin nada.",
+      "Luego contraté a mis primos. Economías de escala. Luego a los primos de mis primos. Diversificación de la plantilla. En dos años éramos 60 hombres muy en forma operando desde una cabaña con WiFi de fibra óptica.",
+      "El jefe de la aldea lo llamó explotación. Yo lo llamé mi primer millón y me fui a reinvertirlo.",
+      "Seguimos."
+    ]
+  },
+  {
+    id: 3,
+    title: "Lleida o el mundo",
+    preview: "Cuando ya tenía el millón, el consejo de ancianos me volvió a llamar...",
+    text: [
+      "Cuando ya tenía el millón, el consejo de ancianos me volvió a llamar. Dos opciones, dijeron. Quedarte aquí en taparrabos o ir a Lleida a recoger fruta.",
+      "Yo saqué el teléfono y les enseñé mi cuenta bancaria. Silencio total.",
+      "Luego cogí ese millón y lo metí en tres cosas: acciones de Apple, un piso en Dubai sobre plano y los derechos de autor del baile más viral de mi plataforma. En 18 meses el piso valía cuatro veces más, Apple subió un 40% y el baile lo usó una marca de refrescos brasileña en su campaña de navidad. Royalties indefinidos.",
+      "Lleida nunca supo lo que se perdió."
+    ]
+  },
+  {
+    id: 4,
+    title: "El maletín",
+    preview: "Con 22 años era rico pero aburrido...",
+    text: [
+      "Con 22 años era rico pero aburrido. El dinero ya no era un reto, era una consecuencia. Necesitaba algo más.",
+      "Entonces descubrí la única pregunta que los mercados no saben responder: ¿cuánto vale una persona por dentro?",
+      "Empecé a hacer apuestas en cenas de negocios. Le pregunté a un banquero suizo si se comería una aceituna del suelo por 10.000 francos. Lo hizo en dos segundos. Corbata Hermès, tres hijos en colegio privado, casado con una condesa. Dos segundos.",
+      "Ahí lo vi claro. Mandé fabricar el maletín. Llevo el Bentley desde los 23. Y viajo. No para hacerme más rico. Para seguir encontrando respuestas."
+    ]
+  },
+  {
+    id: 5,
+    title: "Niger Blackrok",
+    preview: "Me has aguantado cinco rondas. Eso merece algo que no le doy a casi nadie...",
+    text: [
+      "Me has aguantado cinco rondas. Eso merece algo que no le doy a casi nadie.",
+      "Mi nombre. Niger Blackrok. Niger como el río. Porque el río Níger no le pide permiso a nadie para fluir. Como el dinero. Como yo.",
+      "Blackrok me lo puse yo mismo a los 20 años en honor a BlackRock, la mayor gestora de activos del mundo. Sin la c final para que no me demandaran. El funcionario me preguntó si estaba seguro. Le dije: BlackRock gestiona 10 billones de dólares. Yo ya los superé. Sin 20.000 empleados. Sin sede en Manhattan. Solo el maletín.",
+      "El funcionario no dijo nada más. Firmó.",
+      "Una cabra. Un baile. Un piso en Dubai. Un maletín. Y aquí estoy.",
+      "El mercado lleva siglos poniendo precio a las cosas. Yo solo aprendí a jugar con sus reglas. Y a ganar.",
+      "Ah. Aquí hay algo. Un papel. Con instrucciones.",
+      "Pone: 'Si has llegado hasta aquí, manda ahora mismo a Alan por WhatsApp un negro, un maletín y un billete. Sin explicaciones. Solo eso. Él ya sabrá.'",
+      "El negro no hace esto normalmente. Pero las instrucciones son claras.",
+      "Ha sido un placer conocerte. Gracias por jugar. Última pregunta."
+    ]
+  }
+];
+
+// localStorage helpers
+function getLoreProgress() {
+  try { return parseInt(localStorage.getItem('negro_lore_progress')||'0'); } catch(e){return 0;}
+}
+function setLoreProgress(n) {
+  try { localStorage.setItem('negro_lore_progress', n); } catch(e){}
+}
+
+// Lore typewriter
+let loreTimer = null;
+function loreSpeakParagraphs(paragraphs, onDone) {
+  const el = document.getElementById('lore-text');
+  const cursor = document.getElementById('lore-cursor');
+  if(!el||!cursor) { if(onDone)onDone(); return; }
+  el.innerHTML = ''; el.appendChild(cursor);
+  let pIdx = 0, cIdx = 0;
+  let currentSpan = null;
+
+  function nextChar() {
+    if (pIdx >= paragraphs.length) {
+      if(onDone) setTimeout(onDone, 300);
+      return;
+    }
+    const para = paragraphs[pIdx];
+    if (cIdx === 0) {
+      // New paragraph — add a <p> element
+      if(pIdx > 0) {
+        const br = document.createElement('div');
+        br.style.height = '0.7rem';
+        el.insertBefore(br, cursor);
+      }
+      currentSpan = document.createElement('span');
+      el.insertBefore(currentSpan, cursor);
+    }
+    if (cIdx < para.length) {
+      currentSpan.textContent += para[cIdx];
+      if(soundEnabled && para[cIdx]!==' ') {
+        const AC_FREQS=[523,587,659,698,784,880,988,1047];
+        n(AC_FREQS[cIdx%AC_FREQS.length],'sine',.055,.03);
+      }
+      cIdx++;
+      const d = '.!?'.includes(para[cIdx-1])?220:para[cIdx-1]===','?100:28+Math.random()*12;
+      loreTimer = setTimeout(nextChar, d);
+    } else {
+      pIdx++; cIdx=0;
+      loreTimer = setTimeout(nextChar, 350);
+    }
+  }
+  nextChar();
+}
+
+// Show lore interrupt at question 9
+function showLoreIfNeeded(onDone) {
+  const progress = getLoreProgress();
+  const roundsPlayed = progress; // rounds completed = chapters unlocked
+  const nextChapter = roundsPlayed; // 0-indexed: chapter to show this round
+  if (nextChapter >= LORE_CHAPTERS.length) { if(onDone)onDone(); return; }
+
+  const chapter = LORE_CHAPTERS[nextChapter];
+  document.getElementById('lore-chapter-label').textContent = '◆ Capítulo '+(nextChapter+1)+' de '+LORE_CHAPTERS.length;
+  document.getElementById('lore-chapter-title').textContent = chapter.title;
+  document.getElementById('lore-text').innerHTML = '<span id="lore-cursor"></span>';
+  document.getElementById('lore-continue').className = '';
+  document.getElementById('lore-interrupt').className = 'show';
+  if(soundEnabled) sfxTension();
+
+  // Start typing after brief pause
+  setTimeout(()=>{
+    loreSpeakParagraphs(chapter.text, ()=>{
+      document.getElementById('lore-continue').className = 'show';
+    });
+  }, 800);
+
+  document.getElementById('lore-continue').onclick = ()=>{
+    if(loreTimer) clearTimeout(loreTimer);
+    document.getElementById('lore-interrupt').className = '';
+    setLoreProgress(progress + 1);
+    if(onDone) onDone();
+  };
+}
+
+// Render archivo del negro in result screen
+function renderArchivo() {
+  const progress = getLoreProgress();
+  const container = document.getElementById('archivo-entries');
+  if(!container) return;
+  container.innerHTML = '';
+  const wrap = document.getElementById('archivo-wrap');
+  if(wrap) wrap.className = 'show';
+
+  LORE_CHAPTERS.forEach((ch, i) => {
+    const isUnlocked = i < progress;
+    const isNew = i === progress - 1;
+    const div = document.createElement('div');
+    div.className = 'lore-entry ' + (isUnlocked ? 'unlocked' : 'locked') + (isNew ? ' new-unlock' : '');
+
+    if (isUnlocked) {
+      div.innerHTML = `
+        <div class="lore-entry-header">
+          <div class="lore-entry-label">Capítulo ${i+1}</div>
+          ${isNew ? '<div class="lore-entry-new">✦ Nuevo</div>' : ''}
+        </div>
+        <div class="lore-entry-title">${ch.title}</div>
+        <div class="lore-entry-preview">${ch.preview}</div>`;
+      // Toggle full text on click
+      div.addEventListener('click', ()=>{
+        const prev = div.querySelector('.lore-entry-preview');
+        const isExpanded = prev.dataset.expanded === 'true';
+        if (!isExpanded) {
+          prev.textContent = ch.text.join(' ');
+          prev.dataset.expanded = 'true';
+        } else {
+          prev.textContent = ch.preview;
+          prev.dataset.expanded = 'false';
+        }
+      });
+    } else {
+      div.innerHTML = `
+        <div class="lore-entry-header">
+          <div class="lore-entry-label">Capítulo ${i+1}</div>
+          <div class="lore-entry-label">🔒</div>
+        </div>
+        <div class="lore-entry-title">Juega otra ronda para descubrirlo</div>`;
+    }
+    container.appendChild(div);
+  });
+}
+
+// ============================================================
 // FLUJO PRINCIPAL
 // ============================================================
 function selectPlayer(pid) {
@@ -2367,6 +2622,8 @@ document.getElementById('btn-restart').addEventListener('click', ()=>{
   showScreen('s-intro');
   const mc2 = document.getElementById('char-money-wrap');
   if(mc2) mc2.className='';
+  const aw = document.getElementById('archivo-wrap');
+  if(aw) aw.className='';
   bankReady=false; questionBank=[];
 });
 document.getElementById('sound-btn').addEventListener('click', ()=>{
