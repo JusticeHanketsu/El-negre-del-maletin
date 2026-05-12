@@ -10,7 +10,7 @@
 *{box-sizing:border-box;margin:0;padding:0;}html,body{height:100%;}
 body{background:var(--bg);color:var(--text);font-family:'Cormorant Garamond',serif;min-height:100vh;overflow-x:hidden;}
 #bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
-body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 50% at 50% -5%,rgba(201,168,76,0.1) 0%,transparent 60%);}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none !important;background:radial-gradient(ellipse 60% 50% at 50% -5%,rgba(201,168,76,0.1) 0%,transparent 60%);}
 #app{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:1.5rem 1.25rem 5rem;min-height:100vh;display:flex;flex-direction:column;align-items:center;}
 h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-weight:900;color:var(--gold);text-shadow:0 0 80px rgba(201,168,76,0.35),0 2px 0 rgba(0,0,0,0.9);line-height:1.05;text-align:center;}
 .sub{font-size:0.7rem;letter-spacing:0.45em;text-transform:uppercase;color:var(--text-d);text-align:center;margin-top:0.3rem;}
@@ -136,7 +136,7 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
 #res-aud-hdr{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;padding:0.5rem 0.75rem;background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);}
 #res-aud-hdr span{font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:700;color:var(--gold);}
 #res-aud-comments{display:flex;flex-direction:column;gap:0.5rem;}
-#btn-restart{padding:0.8rem 2.5rem;background:transparent;border:1px solid var(--gold-d);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+#btn-restart{padding:1rem 2.5rem;background:rgba(201,168,76,0.08);border:1px solid var(--gold);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:0.95rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;width:100%;max-width:340px;margin-top:1rem;min-height:56px;position:relative;z-index:50;pointer-events:auto;}
 #btn-restart:hover{border-color:var(--gold);background:rgba(201,168,76,0.05);}
 
 /* LORE SYSTEM */
@@ -532,7 +532,7 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
       <div id="archivo-entries"></div>
       <button id="lore-reset-btn">↺ Resetear progreso del archivo</button>
     </div>
-    <button id="btn-restart">Jugar de nuevo</button>
+    <button id="btn-restart" style="min-height:48px;width:100%;max-width:340px;">Jugar de nuevo</button>
   </div>
 </div>
 
@@ -2688,6 +2688,10 @@ document.getElementById('btn-next').onclick = function() {
   curQ++;
   if(curQ>=TOTAL) showResult(); else loadQ();
 };
+document.getElementById('btn-restart').addEventListener('touchend', function(e) {
+  e.preventDefault();
+  this.onclick();
+}, {passive:false});
 document.getElementById('btn-restart').onclick = function() {
   curQ=0; money=0; yesC=0; noC=0; streak=0; streakType=null;
   negroMiente_used=false; negroMiente_done=false; negrocambia_used=false;
