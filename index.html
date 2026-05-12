@@ -142,7 +142,7 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
 #lore-box{max-width:520px;width:100%;border:1px solid var(--gold-d);background:var(--bg3);padding:2rem 2rem 1.5rem;}
 #lore-chapter-label{font-size:0.58rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold-d);margin-bottom:0.5rem;}
 #lore-chapter-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--gold);margin-bottom:1.25rem;line-height:1.3;}
-#lore-text{font-size:0.92rem;line-height:1.85;color:var(--text-d);font-style:italic;min-height:4rem;}
+#lore-text{font-size:1.1rem;line-height:1.85;color:var(--text-d);font-style:italic;min-height:4rem;}
 #lore-cursor{display:inline-block;width:2px;height:1em;background:var(--gold-d);vertical-align:middle;margin-left:2px;animation:cursorBlink 0.7s step-end infinite;}
 #lore-continue{display:none;margin-top:1.5rem;width:100%;padding:0.75rem;background:transparent;border:1px solid var(--gold-d);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
 #lore-continue:hover{border-color:var(--gold);background:rgba(201,168,76,0.05);}
@@ -520,10 +520,7 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
       <div class="stat"><div class="stat-l">Dignidad</div><div class="stat-v" id="stat-no">0</div></div>
     </div>
     <div id="res-fortune"></div>
-    <div id="res-aud-wrap">
-      <div id="res-aud-hdr"><span>💬 El grupo reacciona</span></div>
-      <div id="res-aud-comments"></div>
-    </div>
+
     <div id="archivo-wrap">
       <div id="archivo-title"><span>📜 Archivo del negro</span></div>
       <div id="archivo-entries"></div>
@@ -1011,6 +1008,36 @@ const FRASES = {
       "Respeto la decisión aunque no la comparta. Como siempre hago.",
       "Esto lo comentamos luego. Tranquilamente. Con calma. Y sin juicio.",
       "No me sorprende. Conozco a esta persona bastante bien.",
+      "Ya me destruyó la vida el Corrupias... yo esto no lo hubiera aceptado.",
+      "Antes salgo de una habitación cerrada borracho que aceptar eso.",
+      "Sherereret shereret alarma de un tontolo aceptando cosas.",
+      "Boh, antes me meto el saxo por el culo.",
+      "Yo no acepto, quiero el orden en mi vida, como diría Regulus.",
+      "uiiiiiiii.... bieeeeeen 🙌",
+      "Yo con ese dinero me hincharía a dulces... y luego me sentiría culpable!",
+      "Yo lo haría, pero no se lo contaría a les nenes.",
+      "Vosotros sois unos mimados y podéis no aceptarlo, pero yo no, necesito el dinero.",
+      "Alaaaaaan Alaaaaaan tú que haríaaas???",
+      "Prefiero pasarme el Witcher 20 veces que aceptar esto.... ah.... que ya lo hago 😂",
+      "Yo acepto, me quedo el dinero y no Alan, no te invito a nada, pesao.",
+      "Buuuukakeee buuukakeee",
+      "jajaja qué farso....",
+      "Negreudee em trec el piteudeee",
+      "Yo lo haría. Y me la pela.",
+      "Yo acepto y el dinero para funkos.",
+      "Prefiero buscarme trabajo que aceptar el dinero de esta forma....",
+      "Yo le contaría una trola al negro para quedarme con el dinero. Sats o no sats?!",
+      "Heyyy negreudeee, ¿juegas al LOL? Te pareces al Lucian. Sats?",
+      "OOOOHHHH MAAA GOOOOD",
+      "Se me quita la voz de sobado solo de imaginármelo...",
+      "Yo no lo hago, no me fío, me dan temblores en el nardo...",
+      "Entre esto y quedar con el Dmnk, me quedo con esto...",
+      "Pues ala, ya lo sabe el negro, el grupo... y la Zapater.",
+      "Papadopoulos también lo haría, porque es tonto y de izquierdas.",
+      "Mala decisión, como la previa más larga del mundo....",
+      "Sigue tomando malas decisiones y acabarás como el Navarro....",
+      "Very yes.",
+      "Hacer cosas productivas no, pero estar aquí con las tonterías del negro sí.... prioridades.",
     ],
     no: [
       "Hay cosas que no tienen precio. Las tuyas incluidas.",
@@ -1085,6 +1112,11 @@ const FRASES = {
       "Mis figuras de Warhammer me miran con más respeto que esto.",
       "Kenny G nunca haría algo así. Y Kenny G es un artista con mayúsculas.",
       "Hay cosas que un hombre hecho y derecho no hace. Esta es una de ellas.",
+      "Ya me destruyó la vida el Corrupias... yo esto no lo hubiera aceptado.",
+      "Antes salgo de una habitación cerrada borracho que aceptar eso.",
+      "Sherereret shereret alarma de un tontolo aceptando cosas.",
+      "Boh, antes me meto el saxo por el culo.",
+      "Yo no acepto, quiero el orden en mi vida, como diría Regulus.",
     ],
     no: [
       "Bien. Eso es lo que haría un hombre con criterio. Como yo.",
@@ -1156,6 +1188,13 @@ const FRASES = {
       "Aleix tampoco haría esto. Aunque no haría nada porque es un NPC con brazos buenos.",
       "Aaay me dan ganas de ir a Port Aventura a olvidar lo que acabo de ver 😭",
       "Esto me quita las ganas de dejar de fumar, en serio.",
+      "uiiiiiiii.... bieeeeeen 🙌",
+      "Yo con ese dinero me hincharía a dulces... y luego me sentiría culpable!",
+      "Yo lo haría, pero no se lo contaría a les nenes.",
+      "Vosotros sois unos mimados y podéis no aceptarlo, pero yo no, necesito el dinero.",
+      "Alaaaaaan Alaaaaaan tú que haríaaas???",
+      "Prefiero pasarme el Witcher 20 veces que aceptar esto.... ah.... que ya lo hago 😂",
+      "Yo acepto, me quedo el dinero y no Alan, no te invito a nada, pesao.",
     ],
     no: [
       "Bien hecho!! Yo tampoco lo haría 🙌 bueno... creo que no",
@@ -1227,6 +1266,15 @@ const FRASES = {
       "Yo nunca miento y te digo que yo lo haría sin pensarlo dos veces. Sats o no sats.",
       "Pero qué shulo esto, no? Hay que tenerlos bien puestos para hacer esto.",
       "Lo subiría al Insta en stories con música dramática de fondo. Puro contenido.",
+      "Buuuukakeee buuukakeee",
+      "jajaja qué farso....",
+      "Negreudee em trec el piteudeee",
+      "Yo lo haría. Y me la pela.",
+      "Yo acepto y el dinero para funkos.",
+      "Prefiero buscarme trabajo que aceptar el dinero de esta forma....",
+      "Yo le contaría una trola al negro para quedarme con el dinero. Sats o no sats?!",
+      "Heyyy negreudeee, ¿juegas al LOL? Te pareces al Lucian. Sats?",
+      "OOOOHHHH MAAA GOOOOD",
     ],
     no: [
       "Sats o no sats, eso yo tampoco lo haría. Hay límites.",
@@ -1634,6 +1682,14 @@ const ESPIA_FRASES = [
   "Lo del martes pasado. El negro lo sabe. No digas nada. Solo responde.",
 ];
 
+const NEGRO_ACCEPT_EXTRA = [
+  "Patetiqueude.... .... (!) Ya se me está pegando decir esa chorrada...",
+  "Ya... bueno.... pero que no se entere todo el camping.",
+  "Ni cuando era pobre en mi tribu lo hubiera aceptado... lamentable.",
+  "Yo he bailado y felicitado cumpleaños por dinero... pero esto... esto no.",
+  "¿Tan pobre eres que aceptas esto? Te pareces a los de mi tribu natal...",
+];
+
 const IMPACIENCIA_FRASES = [
   "El silencio también es una respuesta. La más cobarde de todas.",
   "El mercado no espera. Tú sí. Mal síntoma.",
@@ -1646,12 +1702,13 @@ const IMPACIENCIA_FRASES = [
 ];
 
 const DEUDA_FRASES = [
+  "Sé de ti más que tú mismo.",
+  "Sé de ti más de lo que crees... hice mi trabajo contigo.",
+  "Puedes intentar engañarte con lo que aceptas o lo que no, pero a mí no, te conozco. Esto no es solo un juego.",
   "Teniendo en cuenta lo que acabas de aceptar... ¿esto también?",
-  "El negro recuerda lo anterior. ¿Hasta dónde llega esto realmente?",
   "Después de lo último... esta pregunta es casi un trámite.",
   "El maletín toma nota de todo. Lo anterior incluido. Seguimos.",
   "Sigues en racha. El negro lo valora. Y lo archiva.",
-  "Una cosa lleva a la otra. El negro lo sabía desde el principio.",
 ];
 
 const FRIO_FRASES = [
@@ -1932,6 +1989,11 @@ function answer(accepted, isCounter=false, counterAmt=0) {
     if(earned>0){ money+=earned; updateMoneyCounter('up'); }
     setExpr(isCounter ? 'despise' : (curQuestion.expr_yes||'despise'));
     sfxAccept(); spawnCoins();
+    // 20% chance of negro extra comment
+    if (!isCounter && Math.random()<0.20) {
+      feedbackText = NEGRO_ACCEPT_EXTRA[Math.floor(Math.random()*NEGRO_ACCEPT_EXTRA.length)];
+      setExpr('despise');
+    } else
     feedbackText = isCounter
       ? `Todo el mundo tiene un precio. El de ${currentPlayer.name} acaba de actualizarse a la baja.`
       : (negroOfendido>0 ? FRIO_FRASES[Math.floor(Math.random()*FRIO_FRASES.length)] : curQuestion.feedback_yes);
@@ -2111,10 +2173,7 @@ function showResult() {
   const finalComments = fetchFinalComments();
   document.getElementById('res-fortune').textContent = fortune;
   renderArchivo();
-  if (finalComments && finalComments.length) {
-    renderWaBubbles(finalComments, document.getElementById('res-aud-comments'));
-    document.getElementById('res-aud-wrap').style.display='block';
-  }
+
 }
 
 // fetchFortune reemplazado por getVeredicto() estático
@@ -2400,6 +2459,7 @@ const LORE_CHAPTERS = [
       "El funcionario no dijo nada más. Firmó.",
       "Una cabra. Un baile. Un piso en Dubai. Un maletín. Y aquí estoy.",
       "El mercado lleva siglos poniendo precio a las cosas. Yo solo aprendí a jugar con sus reglas. Y a ganar.",
+      "⏸4000",
       "Ah. Aquí hay algo. Un papel. Con instrucciones.",
       "Pone: 'Si has llegado hasta aquí, manda ahora mismo a Alan por WhatsApp un negro, un maletín y un billete. Sin explicaciones. Solo eso. Él ya sabrá.'",
       "El negro no hace esto normalmente. Pero las instrucciones son claras.",
@@ -2432,8 +2492,14 @@ function loreSpeakParagraphs(paragraphs, onDone) {
       return;
     }
     const para = paragraphs[pIdx];
+    // Handle pause marker ⏸XXXX
+    if (para.startsWith('⏸')) {
+      const pauseMs = parseInt(para.slice(1)) || 2000;
+      pIdx++; cIdx=0;
+      loreTimer = setTimeout(nextChar, pauseMs);
+      return;
+    }
     if (cIdx === 0) {
-      // New paragraph — add a <p> element
       if(pIdx > 0) {
         const br = document.createElement('div');
         br.style.height = '0.7rem';
