@@ -2157,6 +2157,10 @@ function showSpeech(text, cb) {
 // RESULTADO
 // ============================================================
 function showResult() {
+  // Make sure lore overlay is hidden
+  const loreEl = document.getElementById('lore-interrupt');
+  if(loreEl) loreEl.className = '';
+  if(loreTimer) clearTimeout(loreTimer);
   showScreen('s-result'); sfxResult();
   document.getElementById('res-player-name').textContent = currentPlayer.name.toUpperCase();
   document.getElementById('res-money').textContent = fmtMoney(money);
@@ -2689,6 +2693,9 @@ document.getElementById('btn-next').onclick = function() {
   if(curQ>=TOTAL) showResult(); else loadQ();
 };
 function doRestart() {
+  const loreEl2 = document.getElementById('lore-interrupt');
+  if(loreEl2) loreEl2.className = '';
+  if(loreTimer) clearTimeout(loreTimer);
   curQ=0; money=0; yesC=0; noC=0; streak=0; streakType=null;
   negroMiente_used=false; negroMiente_done=false; negrocambia_used=false;
   negroOfendido=0; negroRoto=false; negroContradicho=false; negroLlamo=false;
