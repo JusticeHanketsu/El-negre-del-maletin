@@ -101,6 +101,7 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
 
 #btn-next{display:none;width:100%;padding:0.8rem;background:transparent;border:1px solid var(--gold-d);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:700;letter-spacing:0.28em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;}
 #btn-next:hover{border-color:var(--gold);background:rgba(201,168,76,0.04);}
+#btn-next{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 #btn-next.show{display:block;}
 
 #prog-wrap{width:100%;display:flex;align-items:center;gap:0.75rem;margin-bottom:1.1rem;}
@@ -133,18 +134,18 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
 #res-aud-hdr{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.6rem;padding:0.5rem 0.75rem;background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);}
 #res-aud-hdr span{font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:700;color:var(--gold);}
 #res-aud-comments{display:flex;flex-direction:column;gap:0.5rem;}
-#btn-restart{padding:0.8rem 2.5rem;background:transparent;border:1px solid var(--gold-d);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;}
+#btn-restart{padding:0.8rem 2.5rem;background:transparent;border:1px solid var(--gold-d);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;transition:all 0.18s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 #btn-restart:hover{border-color:var(--gold);background:rgba(201,168,76,0.05);}
 
 /* LORE SYSTEM */
-#lore-interrupt{display:none;position:fixed;inset:0;background:rgba(7,7,6,0.96);z-index:400;align-items:center;justify-content:center;flex-direction:column;padding:2rem;}
+#lore-interrupt{display:none;position:fixed;inset:0;background:rgba(7,7,6,0.96);z-index:400;align-items:flex-start;justify-content:center;flex-direction:column;padding:1.5rem;overflow-y:auto;-webkit-overflow-scrolling:touch;}
 #lore-interrupt.show{display:flex;animation:fadeUp 0.5s ease;}
-#lore-box{max-width:520px;width:100%;border:1px solid var(--gold-d);background:var(--bg3);padding:2rem 2rem 1.5rem;}
+#lore-box{max-width:520px;width:100%;border:1px solid var(--gold-d);background:var(--bg3);padding:1.5rem 1.5rem 1.25rem;margin:auto;}
 #lore-chapter-label{font-size:0.58rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold-d);margin-bottom:0.5rem;}
 #lore-chapter-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--gold);margin-bottom:1.25rem;line-height:1.3;}
 #lore-text{font-size:1.1rem;line-height:1.85;color:var(--text-d);font-style:italic;min-height:4rem;}
 #lore-cursor{display:inline-block;width:2px;height:1em;background:var(--gold-d);vertical-align:middle;margin-left:2px;animation:cursorBlink 0.7s step-end infinite;}
-#lore-continue{display:none;margin-top:1.5rem;width:100%;padding:0.75rem;background:transparent;border:1px solid var(--gold-d);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
+#lore-continue{display:none;margin-top:1.5rem;width:100%;padding:0.85rem;background:rgba(7,7,6,0.95);border:1px solid var(--gold-d);color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:0.85rem;font-weight:700;letter-spacing:0.25em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 #lore-continue:hover{border-color:var(--gold);background:rgba(201,168,76,0.05);}
 #lore-continue.show{display:block;}
 
@@ -1767,7 +1768,7 @@ function startImpaciencia() {
     const frase = IMPACIENCIA_FRASES[Math.floor(Math.random()*IMPACIENCIA_FRASES.length)];
     setExpr('judge');
     showSpeech(frase, null);
-  }, 20000);
+  }, 30000);
 }
 
 function loadQ() {
@@ -1873,8 +1874,8 @@ function loadQ() {
             startImpaciencia();
           }
         };
-        document.getElementById('btn-oc-nueva').onclick = ()=>{ document.getElementById('ocurrencia-box').className=''; if(oc.amount>0){money+=oc.amount; updateMoneyCounter('up');} yesC++; setExpr('laugh'); sfxAccept(); if(oc.amount>0)spawnCoins(); showSpeech(oc.feedback_si, ()=>{ maybeAudience(curQuestion.question,'aceptó la ocurrencia del negro',oc.feedback_si,document.getElementById('audience-comments'),document.getElementById('audience-box')); document.getElementById('btn-next').className='show'; }); };
-        document.getElementById('btn-oc-ninguna').onclick = ()=>{ document.getElementById('ocurrencia-box').className=''; noC++; setExpr('despise'); sfxReject(); negroOfendido=2; showSpeech('Has rechazado MI propuesta. No la del maletín. La mía. El negro no lo olvidará pronto.', ()=>{ maybeAudience(curQuestion.question,'rechazó la ocurrencia del negro','',document.getElementById('audience-comments'),document.getElementById('audience-box')); document.getElementById('btn-next').className='show'; }); };
+        document.getElementById('btn-oc-nueva').onclick = ()=>{ clearImpaciencia(); document.getElementById('ocurrencia-box').className=''; if(oc.amount>0){money+=oc.amount; updateMoneyCounter('up');} yesC++; setExpr('laugh'); sfxAccept(); if(oc.amount>0)spawnCoins(); showSpeech(oc.feedback_si, ()=>{ maybeAudience(curQuestion.question,'aceptó la ocurrencia del negro',oc.feedback_si,document.getElementById('audience-comments'),document.getElementById('audience-box')); document.getElementById('btn-next').className='show'; }); };
+        document.getElementById('btn-oc-ninguna').onclick = ()=>{ clearImpaciencia(); document.getElementById('ocurrencia-box').className=''; noC++; setExpr('despise'); sfxReject(); negroOfendido=2; showSpeech('Has rechazado MI propuesta. No la del maletín. La mía. El negro no lo olvidará pronto.', ()=>{ maybeAudience(curQuestion.question,'rechazó la ocurrencia del negro','',document.getElementById('audience-comments'),document.getElementById('audience-box')); document.getElementById('btn-next').className='show'; }); };
         sfxCounter();
       });
     }, 2000);
@@ -2037,6 +2038,7 @@ function answer(accepted, isCounter=false, counterAmt=0) {
       negrocambia_used=true;
       const newAmount=Math.round(amount*1.5/50)*50;
       feedbackText=`${curQuestion.feedback_no} ...Un momento. El negro reconsideraba. ¿Y si fueran ${fmtMoney(newAmount)}€?`;
+      clearImpaciencia();
       setTimeout(()=>{
         sfxCounter();
         document.getElementById('co-text').textContent=`Nueva oferta: ${fmtMoney(newAmount)}€. El negro no repite esto.`;
@@ -2090,6 +2092,7 @@ function answer(accepted, isCounter=false, counterAmt=0) {
         const coBox = document.getElementById('co-box');
         coBox.parentNode.insertBefore(excl, coBox);
         setTimeout(()=>{
+          clearImpaciencia();
           excl.remove();
           sfxCounter();
           document.getElementById('co-text').textContent=curQuestion.counteroffer;
@@ -2112,6 +2115,7 @@ function answer(accepted, isCounter=false, counterAmt=0) {
   if(negroOfendido>0) negroOfendido--;
 
   document.getElementById('co-box').className='';
+  clearImpaciencia();
   showSpeech(feedbackText,()=>{
     maybeAudience(curQuestion.question,playerAnswerText,feedbackText,
       document.getElementById('audience-comments'),
@@ -2646,6 +2650,7 @@ document.getElementById('btn-co-yes').addEventListener('click', ()=>{
   answer(true, true, curQuestion.counteroffer_amount||0);
 });
 document.getElementById('btn-co-no').addEventListener('click', ()=>{
+  clearImpaciencia();
   document.getElementById('co-box').className=''; noC++;
   setExpr('smirk'); sfxReject();
   const r=['Dos noes. El negro anota. El precio sube la próxima vez.',`«Dos rechazos. Vale, pero que no se entere todo el camping.»`,'El negro cierra el maletín. Despacio. Sin apartar la mirada.'];
@@ -2661,7 +2666,7 @@ document.getElementById('btn-next').addEventListener('click', ()=>{
   curQ++;
   if(curQ>=TOTAL) showResult(); else loadQ();
 });
-document.getElementById('btn-restart').addEventListener('click', ()=>{
+document.getElementById('btn-restart').onclick = function() {
   curQ=0; money=0; yesC=0; noC=0; streak=0; streakType=null;
   negroMiente_used=false; negroMiente_done=false; negrocambia_used=false;
   negroOfendido=0; negroRoto=false; negroContradicho=false; negroLlamo=false;
@@ -2678,7 +2683,7 @@ document.getElementById('btn-restart').addEventListener('click', ()=>{
   const aw = document.getElementById('archivo-wrap');
   if(aw) aw.className='';
   bankReady=false; questionBank=[];
-});
+};
 document.getElementById('sound-btn').addEventListener('click', ()=>{
   soundEnabled=!soundEnabled;
   document.getElementById('sound-btn').textContent=soundEnabled?'🔊 SFX':'🔇 SFX';
