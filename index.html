@@ -165,6 +165,9 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
 .lore-entry-preview{font-size:0.95rem;color:var(--text-d);font-style:italic;margin-top:0.3rem;line-height:1.5;display:none;}
 .lore-entry.unlocked .lore-entry-preview{display:block;}
 .lore-entry.locked .lore-entry-title{color:var(--text-dd);}
+#lore-reset-btn{display:none;margin-top:0.75rem;width:100%;padding:0.4rem;background:transparent;border:1px solid var(--text-dd);color:var(--text-dd);font-family:'Cormorant Garamond',serif;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;opacity:0.4;transition:all 0.2s;}
+#lore-reset-btn:hover{opacity:1;border-color:#8B0000;color:#CC4444;}
+#lore-reset-btn.show{display:block;}
 
 /* CONTADOR DE DINERO — pancarta al lado del negro */
 #char-money-wrap{display:none;justify-content:center;align-items:center;gap:0.75rem;margin-bottom:0.5rem;width:100%;}
@@ -524,6 +527,7 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
     <div id="archivo-wrap">
       <div id="archivo-title"><span>📜 Archivo del negro</span></div>
       <div id="archivo-entries"></div>
+      <button id="lore-reset-btn">↺ Resetear progreso del archivo</button>
     </div>
     <button id="btn-restart">Jugar de nuevo</button>
   </div>
@@ -2563,6 +2567,22 @@ function renderArchivo() {
   container.innerHTML = '';
   const wrap = document.getElementById('archivo-wrap');
   if(wrap) wrap.className = 'show';
+
+  // Show reset button only if there's progress
+  const resetBtn = document.getElementById('lore-reset-btn');
+  if (resetBtn) {
+    if (progress > 0) {
+      resetBtn.className = 'show';
+      resetBtn.onclick = ()=>{
+        if (confirm('¿Resetear el progreso del archivo del negro? Perderás todos los capítulos desbloqueados.')) {
+          setLoreProgress(0);
+          renderArchivo();
+        }
+      };
+    } else {
+      resetBtn.className = '';
+    }
+  }
 
   LORE_CHAPTERS.forEach((ch, i) => {
     const isUnlocked = i < progress;
