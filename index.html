@@ -532,7 +532,7 @@ h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,7vw,3.5rem);font-
       <div id="archivo-entries"></div>
       <button id="lore-reset-btn">↺ Resetear progreso del archivo</button>
     </div>
-    <button id="btn-restart" style="min-height:48px;width:100%;max-width:340px;">Jugar de nuevo</button>
+    <button id="btn-restart" onclick="doRestart()" style="min-height:56px;width:100%;max-width:340px;">Jugar de nuevo</button>
   </div>
 </div>
 
@@ -2688,11 +2688,7 @@ document.getElementById('btn-next').onclick = function() {
   curQ++;
   if(curQ>=TOTAL) showResult(); else loadQ();
 };
-document.getElementById('btn-restart').addEventListener('touchend', function(e) {
-  e.preventDefault();
-  this.onclick();
-}, {passive:false});
-document.getElementById('btn-restart').onclick = function() {
+function doRestart() {
   curQ=0; money=0; yesC=0; noC=0; streak=0; streakType=null;
   negroMiente_used=false; negroMiente_done=false; negrocambia_used=false;
   negroOfendido=0; negroRoto=false; negroContradicho=false; negroLlamo=false;
@@ -2709,7 +2705,12 @@ document.getElementById('btn-restart').onclick = function() {
   const aw = document.getElementById('archivo-wrap');
   if(aw) aw.className='';
   bankReady=false; questionBank=[];
-};
+}
+const btnRestart = document.getElementById('btn-restart');
+btnRestart.onclick = doRestart;
+btnRestart.addEventListener('click', doRestart);
+btnRestart.addEventListener('touchstart', function(e){ e.stopPropagation(); }, {passive:true});
+btnRestart.addEventListener('touchend', function(e){ e.preventDefault(); e.stopPropagation(); doRestart(); }, {passive:false});
 document.getElementById('sound-btn').addEventListener('click', ()=>{
   soundEnabled=!soundEnabled;
   document.getElementById('sound-btn').textContent=soundEnabled?'🔊 SFX':'🔇 SFX';
