@@ -2567,7 +2567,10 @@ function renderArchivo() {
         const prev = div.querySelector('.lore-entry-preview');
         const isExpanded = prev.dataset.expanded === 'true';
         if (!isExpanded) {
-          prev.textContent = ch.text.join(' ');
+          prev.innerHTML = ch.text
+            .filter(p => !p.startsWith('⏸'))
+            .map(p => `<p style="margin-bottom:0.6rem;">${p}</p>`)
+            .join('');
           prev.dataset.expanded = 'true';
         } else {
           prev.textContent = ch.preview;
